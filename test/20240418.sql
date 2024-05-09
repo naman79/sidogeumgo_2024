@@ -469,7 +469,7 @@ SELECT LIST.RN
                                     WHEN ILJA >= '20240401' AND SIGUMGO_AGE_AC_G = 3 AND GEORAE_GUBUN = 41 THEN  IPGEUM_AMT
                                     WHEN ILJA >= '20240401' AND SIGUMGO_AGE_AC_G = 3 AND GEORAE_GUBUN = 95  THEN  JIGEUB_AMT*-1
                                     ELSE 0 END DANGWOL_BAEJUNG,
-                               CASE 
+CASE 
                                         
                                     WHEN SIGUMGO_AGE_AC_G = 1 AND GEORAE_GUBUN = 67 AND JIGEUB_GEORAE = 90 THEN JIGEUB_AMT
                                     WHEN SIGUMGO_AGE_AC_G = 1 AND GEORAE_GUBUN = 17 AND IPGEUM_GEORAE = 90 THEN IPGEUM_AMT*-1                                        

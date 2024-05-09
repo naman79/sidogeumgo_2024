@@ -45,3 +45,8 @@ SELECT
   WHERE T.HOIGYE_CODE = U.SIGUMGO_HOIKYE_C
     AND T.GEUMGO_CODE = W.HRNK_CMM_DTL_C
   ORDER BY T.HOIGYE_CODE
+
+  --------------------------------------
+
+
+  
