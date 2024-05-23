@@ -558,3 +558,46 @@ and (
     OR
     (ICH_SIGUMGO_HOIKYE_C <> 30)
 )
+
+
+select * from ACL_SIGUMGO_SLV
+where 1=1
+and SIGUMGO_ORG_C = 28
+and trxdt like '202310%'
+and CRT_CAN_G in (2, 33)
+and ICH_SIGUMGO_HOIKYE_C in (23, 24, 25, 30)
+and SIGUMGO_TRX_G = 11
+and SIGUMGO_AC_B = 10
+and (
+    (ICH_SIGUMGO_HOIKYE_C = 30 and immd_proc_dsyn = 1)
+    OR
+    (ICH_SIGUMGO_HOIKYE_C <> 30)
+)
+
+select * from ACL_SIGUMGO_SLV
+where 1=1
+and SIGUMGO_ORG_C = 28
+and trxdt like '202311%'
+and CRT_CAN_G in (2, 33)
+and ICH_SIGUMGO_HOIKYE_C in (23, 24, 25, 30)
+and SIGUMGO_TRX_G = 11
+and SIGUMGO_AC_B = 10
+and (
+    (ICH_SIGUMGO_HOIKYE_C = 30 and immd_proc_dsyn = 1)
+    OR
+    (ICH_SIGUMGO_HOIKYE_C <> 30)
+)
+
+select * from ACL_SIGUMGO_SLV
+where 1=1
+and SIGUMGO_ORG_C = 28
+and trxdt like '202312%'
+and CRT_CAN_G in (2, 33)
+and ICH_SIGUMGO_HOIKYE_C in (23, 24, 25, 30)
+and SIGUMGO_TRX_G = 11
+and SIGUMGO_AC_B = 10
+and (
+    (ICH_SIGUMGO_HOIKYE_C = 30 and immd_proc_dsyn = 1)
+    OR
+    (ICH_SIGUMGO_HOIKYE_C <> 30)
+)
