@@ -1,0 +1,472 @@
+select * from RPT_TXI_DDAC_TAB
+where SIGUMGO_HOIKYE_yr = 9999
+
+
+-- 36762
+select count(*) as cnt from RPT_TXI_DDAC_TAB
+where SIGUMGO_HOIKYE_yr = 9999
+
+select count(*) as cnt from RPT_TXI_DDAC_TAB
+where SIGUMGO_HOIKYE_yr = 9999
+and NEW_GU_YR_G != 1
+
+select count(*) as cnt from ACL_SIGUMGO_SLV_HIS
+where 1=1
+
+select count(*) as cnt from rpt_gonggeum_keorae_his
+where 1=1
+
+select
+ GEUMGO_CODE,
+ GONGGEUM_GYEJWA,
+ KEORAEIL,
+ KISANIL,
+ GEORAE_SEQ,
+ count(*) as cnt 
+from rpt_gonggeum_keorae_his
+where 1=1
+and KEORAEIL like '2023%'
+group by 
+ GEUMGO_CODE,
+ GONGGEUM_GYEJWA,
+ KEORAEIL,
+ KISANIL,
+ GEORAE_SEQ
+ order by  
+  GEUMGO_CODE,
+ KEORAEIL,
+  GONGGEUM_GYEJWA,
+ KISANIL,
+ GEORAE_SEQ
+
+select * from rpt_gonggeum_keorae_his
+where 1=1
+and GONGGEUM_GYEJWA = '02800001100000023' 
+and GEORAE_SEQ = 95375
+
+select
+  GEUMGO_CODE,
+ KEORAEIL,
+  KISANIL,
+  GONGGEUM_GYEJWA,
+ GEORAE_SEQ,
+ CHG_DATE,
+ CHG_TIME,
+ KIJUNIL,
+ GEORAE_GUBUN,
+ IPGEUM_GEORAE,
+ JIGEUB_GEORAE,
+ IPGEUM_AMT,
+ JIGEUB_AMT,
+ JUKYO
+from rpt_gonggeum_keorae_his
+where 1=1
+and KEORAEIL like '2023%'
+ order by  
+  GEUMGO_CODE,
+ KEORAEIL,
+ KISANIL,
+  GONGGEUM_GYEJWA,
+ GEORAE_SEQ,
+ CHG_DATE,
+ CHG_TIME
+
+WITH KEORAE_HIS AS (
+    SELECT
+    GEUMGO_CODE,
+    KEORAEIL,
+    KISANIL,
+    GONGGEUM_GYEJWA,
+    GEORAE_SEQ,
+    CHG_DATE,
+    CHG_TIME,
+    KIJUNIL,
+    GEORAE_GUBUN,
+    IPGEUM_GEORAE,
+    JIGEUB_GEORAE,
+    IPGEUM_AMT,
+    JIGEUB_AMT,
+    JUKYO
+    FROM RPT_GONGGEUM_KEORAE_HIS
+    WHERE 1=1
+    AND KEORAEIL LIKE '2023%'
+)
+    SELECT
+    GEUMGO_CODE,
+    KEORAEIL,
+    KISANIL,
+    GONGGEUM_GYEJWA,
+    GEORAE_SEQ,
+    CHG_DATE,
+    CHG_TIME,
+    KIJUNIL,
+    GEORAE_GUBUN,
+    IPGEUM_GEORAE,
+    JIGEUB_GEORAE,
+    IPGEUM_AMT,
+    JIGEUB_AMT,
+    JUKYO
+    FROM RPT_GONGGEUM_KEORAE AS A
+    JOIN KEORAE_HIS AS B
+    WHERE 1=1
+    AND A.KEORAEIL LIKE '2023%'
+    AND A.GEUMGO_CODE = B.GEUMGO_CODE
+    AND A.KEORAEIL = B.KEORAEIL
+    AND A.KISANIL = B.KISANIL
+    AND A.GONGGEUM_GYEJWA = B.GONGGEUM_GYEJWA
+    AND A.GEORAE_SEQ = B.GEORAE_SEQ
+
+--------------------------
+   SELECT
+    A.GEUMGO_CODE,
+    A.KEORAEIL,
+    A.KISANIL,
+    A.GONGGEUM_GYEJWA,
+    A.GEORAE_SEQ,
+    A.KIJUNIL,
+    A.GEORAE_GUBUN,
+    A.IPGEUM_GEORAE,
+    A.JIGEUB_GEORAE,
+    A.IPGEUM_AMT,
+    A.JIGEUB_AMT,
+    A.JUKYO
+    FROM RPT_GONGGEUM_KEORAE A
+    WHERE A.KEORAEIL LIKE '2023%'
+
+
+
+    SELECT
+    A.GEUMGO_CODE,
+    A.KEORAEIL,
+    A.KISANIL,
+    A.GONGGEUM_GYEJWA,
+    A.GEORAE_SEQ,
+    0 AS CHG_DATE,
+    0 AS CHG_TIME,
+    A.KIJUNIL,
+    A.GEORAE_GUBUN,
+    A.IPGEUM_GEORAE,
+    A.JIGEUB_GEORAE,
+    A.IPGEUM_AMT,
+    A.JIGEUB_AMT,
+    A.JUKYO
+    FROM RPT_GONGGEUM_KEORAE A  
+    JOIN (
+    SELECT
+    GEUMGO_CODE,
+    KEORAEIL,
+    KISANIL,
+    GONGGEUM_GYEJWA,
+    GEORAE_SEQ,
+    CHG_DATE,
+    CHG_TIME,
+    KIJUNIL,
+    GEORAE_GUBUN,
+    IPGEUM_GEORAE,
+    JIGEUB_GEORAE,
+    IPGEUM_AMT,
+    JIGEUB_AMT,
+    JUKYO
+    FROM RPT_GONGGEUM_KEORAE_HIS
+    WHERE 1=1
+    AND KEORAEIL LIKE '2023%'
+) B
+    WHERE 1=1
+    AND A.KEORAEIL LIKE '2023%'
+    AND A.GEUMGO_CODE = B.GEUMGO_CODE
+    AND A.KEORAEIL = B.KEORAEIL
+    AND A.KISANIL = B.KISANIL
+    AND A.GONGGEUM_GYEJWA = B.GONGGEUM_GYEJWA
+    AND A.GEORAE_SEQ = B.GEORAE_SEQ
+------------------------------
+------------------------------------------------------------------------
+-- 데이터 검증
+SELECT * FROM RPT_GONGGEUM_KEORAE
+WHERE KEORAEIL = '20230103'
+AND GEORAE_SEQ = 2214
+AND GONGGEUM_GYEJWA = '02800001250001323'
+
+SELECT * FROM RPT_GONGGEUM_KEORAE_HIS
+WHERE KEORAEIL = '20230103'
+AND GEORAE_SEQ = 2214
+AND GONGGEUM_GYEJWA = '02800001250001323'
+
+------------------------------
+WITH KEORAE_HIS_OLD AS (
+    SELECT
+        GEUMGO_CODE,
+        KEORAEIL,
+        KISANIL,
+        GONGGEUM_GYEJWA,
+        GEORAE_SEQ,
+        CHG_DATE,
+        CHG_TIME,
+        KIJUNIL,
+        GEORAE_GUBUN,
+        IPGEUM_GEORAE,
+        JIGEUB_GEORAE,
+        IPGEUM_AMT,
+        JIGEUB_AMT,
+        JUKYO
+    FROM RPT_GONGGEUM_KEORAE_HIS
+    WHERE 
+        KEORAEIL LIKE '2023%'
+    OR 
+        KEORAEIL LIKE '2024%'    
+),
+KEORAE_ORI_OLD AS (
+SELECT 
+        A.GEUMGO_CODE,
+        A.KEORAEIL,
+        A.KISANIL,
+        A.GONGGEUM_GYEJWA,
+        A.GEORAE_SEQ,
+        '0' AS CHG_DATE,
+        '0' AS CHG_TIME,
+        A.KIJUNIL,
+        A.GEORAE_GUBUN,
+        A.IPGEUM_GEORAE,
+        A.JIGEUB_GEORAE,
+        A.IPGEUM_AMT,
+        A.JIGEUB_AMT,
+        A.JUKYO
+FROM
+(    
+    SELECT
+        A.GEUMGO_CODE,
+        A.KEORAEIL,
+        A.KISANIL,
+        A.GONGGEUM_GYEJWA,
+        A.GEORAE_SEQ,
+        A.KIJUNIL,
+        A.GEORAE_GUBUN,
+        A.IPGEUM_GEORAE,
+        A.JIGEUB_GEORAE,
+        A.IPGEUM_AMT,
+        A.JIGEUB_AMT,
+        A.JUKYO
+    FROM RPT_GONGGEUM_KEORAE  A
+    INNER JOIN KEORAE_HIS_OLD  B
+        ON A.GEUMGO_CODE = B.GEUMGO_CODE
+        AND A.KEORAEIL = B.KEORAEIL
+        AND A.KISANIL = B.KISANIL
+        AND A.GONGGEUM_GYEJWA = B.GONGGEUM_GYEJWA
+        AND A.GEORAE_SEQ = B.GEORAE_SEQ 
+    WHERE
+        A.KEORAEIL LIKE '2023%'
+        OR 
+        A.KEORAEIL LIKE '2024%'          
+) A 
+GROUP BY 
+        A.GEUMGO_CODE,
+        A.KEORAEIL,
+        A.KISANIL,
+        A.GONGGEUM_GYEJWA,
+        A.GEORAE_SEQ,
+        A.KIJUNIL,
+        A.GEORAE_GUBUN,
+        A.IPGEUM_GEORAE,
+        A.JIGEUB_GEORAE,
+        A.IPGEUM_AMT,
+        A.JIGEUB_AMT,
+        A.JUKYO   
+),
+KEORAE_ALL_OLD AS (
+    SELECT 
+        GEUMGO_CODE,
+        KEORAEIL,
+        KISANIL,
+        GONGGEUM_GYEJWA,
+        GEORAE_SEQ,
+        CHG_DATE,
+        CHG_TIME,
+        KIJUNIL,
+        GEORAE_GUBUN,
+        IPGEUM_GEORAE,
+        JIGEUB_GEORAE,
+        IPGEUM_AMT,
+        JIGEUB_AMT,
+        JUKYO
+    FROM KEORAE_ORI_OLD
+    UNION ALL
+    SELECT 
+        GEUMGO_CODE,
+        KEORAEIL,
+        KISANIL,
+        GONGGEUM_GYEJWA,
+        GEORAE_SEQ,
+        CHG_DATE,
+        CHG_TIME,
+        KIJUNIL,
+        GEORAE_GUBUN,
+        IPGEUM_GEORAE,
+        JIGEUB_GEORAE,
+        IPGEUM_AMT,
+        JIGEUB_AMT,
+        JUKYO
+    FROM KEORAE_HIS_OLD
+)
+SELECT 
+    GEUMGO_CODE,
+    KEORAEIL,
+    KISANIL,
+    GONGGEUM_GYEJWA,
+    GEORAE_SEQ,
+    CHG_DATE,
+    CHG_TIME,
+    KIJUNIL,
+    GEORAE_GUBUN,
+    IPGEUM_GEORAE,
+    JIGEUB_GEORAE,
+    IPGEUM_AMT,
+    JIGEUB_AMT,
+    JUKYO
+FROM KEORAE_ALL
+ORDER BY
+    GEUMGO_CODE,
+    KEORAEIL,
+    KISANIL,
+    GONGGEUM_GYEJWA,
+    GEORAE_SEQ,
+    CHG_DATE,
+    CHG_TIME
+
+
+select * from rpt_gonggeum_keorae_his
+where 1=1
+and KEORAEIL like '2024%'
+
+
+select * from ACL_SIGUMGO_SLV_HIS
+where 1=1
+order by trxdt 
+
+---------------------------------------------------------
+
+WITH KEORAE_HIS AS (
+    SELECT
+        SIGUMGO_ORG_C AS GEUMGO_CODE,
+        TRXDT AS KEORAEIL,
+        GISDT AS KISANIL,
+        FIL_100_CTNT5 AS GONGGEUM_GYEJWA,
+        TRXNO AS GEORAE_SEQ,
+        SND_DR_DTTM AS CHG_DATE_TIME,
+        GJDT AS KIJUNIL,
+        SIGUMGO_TRX_G AS GEORAE_GUBUN,
+        SIGUMGO_IP_TRX_G IPGEUM_GEORAE,
+        SIGUMGO_JI_TRX_G JIGEUB_GEORAE,
+        TRAMT,
+        CMMT_CTNT AS JUKYO
+    FROM ACL_SIGUMGO_SLV_HIS
+    WHERE 
+        TRXDT LIKE '2023%'
+    OR 
+        TRXDT LIKE '2024%'    
+),
+KEORAE_ORI AS (
+SELECT 
+        A.GEUMGO_CODE,
+        A.KEORAEIL,
+        A.KISANIL,
+        A.GONGGEUM_GYEJWA,
+        A.GEORAE_SEQ,
+        '0' AS CHG_DATE_TIME,
+        A.KIJUNIL,
+        A.GEORAE_GUBUN,
+        A.IPGEUM_GEORAE,
+        A.JIGEUB_GEORAE,
+        A.TRAMT,
+        A.JUKYO
+FROM
+(    
+    SELECT
+        A.SIGUMGO_ORG_C AS GEUMGO_CODE,
+        A.TRXDT AS KEORAEIL,
+        A.GISDT AS KISANIL,
+        A.FIL_100_CTNT5 AS GONGGEUM_GYEJWA,
+        A.TRXNO AS GEORAE_SEQ,
+        A.SND_DR_DTTM AS CHG_DATE_TIME,
+        A.GJDT AS KIJUNIL,
+        A.SIGUMGO_TRX_G AS GEORAE_GUBUN,
+        A.SIGUMGO_IP_TRX_G IPGEUM_GEORAE,
+        A.SIGUMGO_JI_TRX_G JIGEUB_GEORAE,
+        A.TRAMT,
+        A.CMMT_CTNT AS JUKYO
+    FROM ACL_SIGUMGO_SLV  A
+    INNER JOIN KEORAE_HIS  B
+        ON A.SIGUMGO_ORG_C = B.GEUMGO_CODE
+        AND A.TRXDT = B.KEORAEIL
+        AND A.GISDT = B.KISANIL
+        AND A.FIL_100_CTNT5 = B.GONGGEUM_GYEJWA
+        AND A.TRXNO = B.GEORAE_SEQ 
+    WHERE
+        A.TRXDT LIKE '2023%'
+        OR 
+        A.TRXDT LIKE '2024%'          
+) A 
+GROUP BY 
+        A.GEUMGO_CODE,
+        A.KEORAEIL,
+        A.KISANIL,
+        A.GONGGEUM_GYEJWA,
+        CHG_DATE_TIME,
+        A.GEORAE_SEQ,
+        A.KIJUNIL,
+        A.GEORAE_GUBUN,
+        A.IPGEUM_GEORAE,
+        A.JIGEUB_GEORAE,
+        A.TRAMT,
+        A.JUKYO   
+),
+KEORAE_ALL AS (
+    SELECT 
+        GEUMGO_CODE,
+        KEORAEIL,
+        KISANIL,
+        GONGGEUM_GYEJWA,
+        GEORAE_SEQ,
+        CHG_DATE_TIME,
+        KIJUNIL,
+        GEORAE_GUBUN,
+        IPGEUM_GEORAE,
+        JIGEUB_GEORAE,
+        TRAMT,
+        JUKYO
+    FROM KEORAE_ORI
+    UNION ALL
+    SELECT 
+        GEUMGO_CODE,
+        KEORAEIL,
+        KISANIL,
+        GONGGEUM_GYEJWA,
+        GEORAE_SEQ,
+        CHG_DATE_TIME,
+        KIJUNIL,
+        GEORAE_GUBUN,
+        IPGEUM_GEORAE,
+        JIGEUB_GEORAE,
+        TRAMT,
+        JUKYO
+    FROM KEORAE_HIS
+)
+SELECT 
+    GEUMGO_CODE,
+    KEORAEIL,
+    KISANIL,
+    GONGGEUM_GYEJWA,
+    GEORAE_SEQ,
+    CHG_DATE_TIME,
+    KIJUNIL,
+    GEORAE_GUBUN,
+    IPGEUM_GEORAE,
+    JIGEUB_GEORAE,
+    TRAMT,
+    JUKYO
+FROM KEORAE_ALL
+ORDER BY
+    GEUMGO_CODE,
+    KEORAEIL,
+    KISANIL,
+    GONGGEUM_GYEJWA,
+    GEORAE_SEQ,
+    CHG_DATE_TIME
