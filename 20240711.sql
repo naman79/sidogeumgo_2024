@@ -359,6 +359,7 @@ WHERE 1=1
 
   select gonggeum_gyejwa, sum(JANAEK) as sum_janaek ,  sum(JANAEK)/182 as p_jan from rpt_unyong_jan
   where gonggeum_gyejwa = '13000080900000699'
+  and unyong_gyejwa like '200%'
   and kijunil between '20240101' and '20240630'
   and JANAEK > 0
   group by gonggeum_gyejwa
