@@ -1,0 +1,1 @@
+select * from rpt_sunap_jibgye where sunapil like '202406%' and jibgye_code in (300000, 304000)
