@@ -376,3 +376,315 @@ group by Z.SL_GMGO_MODL_C
        , Z.USER_ID
        , Z.MENU_ID
        , B.MENU_NM
+
+--------------------------------------------------------------------------
+
+SELECT GONGGEUM_HOIGYE_CODE
+     , GONGGEUM_GYEJWA
+     , GONGGEUM_YUDONG_ACNO
+     , GONGGEUM_GYEJWA_NM
+     , BEF_JAN
+     , JIGEUB
+     , IPGEUM
+     , HYUN_JAN
+  FROM
+(
+       WITH AC_BY_DEPT AS
+       (
+           SELECT SGM.SIGUMGO_ACNO      AS GONGGEUM_GYEJWA
+                 , SGM.SIGUMGO_HOIKYE_C AS GONGGEUM_HOIGYE_CODE
+                 , SGM.SIGUMGO_AC_NM    AS GONGGEUM_GYEJWA_NM
+                 , LPAD(SGM.LINKAC_KWA_C, 3, '0')||LPAD(SGM.LINKAC_SER, 9, '0') AS GONGGEUM_YUDONG_ACNO
+                 , SGM.SIGUMGO_ORG_C
+             FROM SFI_ORG_DEPT_C_MNG OCM
+            INNER JOIN SFI_ORG_BY_DEPT_MNG OBD
+                    ON OCM.PADM_STD_ORG_C = OBD.PADM_STD_ORG_C
+            INNER JOIN RPT_JEONJA_AC_BY_DEPT_MNG ADM
+                    ON OBD.G_CC_DEPT_C = ADM.SL_GMGO_DEPT_C
+                   AND ADM.HOIKYE_YEAR IN (2023, '9999')
+            INNER JOIN ACL_SIGUMGO_MAS_SUB SGM
+                    ON SGM.SIGUMGO_ACNO = ADM.SGG_ACNO
+                   AND SGM.SIGUMGO_ORG_C = '28'
+            WHERE ('ALL' = NVL('6280000', 'ALL') OR OCM.REP_ORG_C = '6280000')
+              AND ('ALL' = NVL('6285873', 'ALL') OR OCM.PADM_STD_ORG_C = '6285873')
+              AND ('ALL' = NVL('', 'ALL') OR OBD.G_CC_DEPT_C = '')
+              AND ('ALL' = NVL('','ALL') OR SGM.AC_GRBRNO = '')
+              AND ('ALL' = NVL('', 'ALL') OR SGM.SIGUMGO_HOIKYE_C = '')
+              AND ('ALL' = NVL('', 'ALL') OR TO_CHAR(SGM.SIGUMGO_AC_B) = '')
+              AND ('ALL' = NVL('','ALL') OR SGM.SIGUMGO_ACNO = '')
+              AND SGM.SIGUMGO_AGE_AC_G IN (0, 1)
+            GROUP BY SGM.SIGUMGO_ACNO, SGM.SIGUMGO_HOIKYE_C, SGM.LINKAC_KWA_C, SGM.LINKAC_SER, SGM.SIGUMGO_AC_NM, SGM.SIGUMGO_ORG_C
+       )
+       SELECT ACL.GONGGEUM_HOIGYE_CODE, ACL.GONGGEUM_GYEJWA, ACL.GONGGEUM_YUDONG_ACNO, ACL.GONGGEUM_GYEJWA_NM
+            , GGJ.BFJAN AS BEF_JAN
+            , GGJ.JIAMT AS JIGEUB
+            , GGJ.IPAMT AS IPGEUM
+            , GGJ.JANAEK AS HYUN_JAN
+         FROM AC_BY_DEPT ACL
+        INNER JOIN  RPT_GONGGEUM_JAN GGJ
+                ON GGJ.GEUMGO_CODE= ACL.SIGUMGO_ORG_C
+                AND GGJ.GONGGEUM_GYEJWA = ACL.GONGGEUM_GYEJWA
+        WHERE GGJ.KEORAEIL = '20240131'
+          AND ('ALL' = NVL('', 'ALL') OR REGEXP_LIKE(ACL.GONGGEUM_YUDONG_ACNO, ''))
+) A
+ORDER BY GONGGEUM_GYEJWA
+
+-------------------------------------------------------------------
+
+SELECT
+     T1.GONGGEUM_HOIGYE_CODE
+    ,T2.GONGGEUM_GYEJWA
+    ,T1.GONGGEUM_YUDONG_ACNO
+    ,T1.GONGGEUM_GYEJWA_NM
+    ,SUM(T2.BFJAN) AS BEF_JAN
+    ,SUM(T2.JIAMT) AS JIGEUB
+    ,SUM(T2.IPAMT) AS IPGEUM
+    ,SUM(T2.JANAEK) AS HYUN_JAN
+FROM
+     (
+      SELECT
+           T1.SIGUMGO_ORG_C AS GONGGEUM_GEUMGO_CD
+          ,T1.ICH_SIGUMGO_HOIKYE_C AS GONGGEUM_HOIGYE_CODE
+          ,T1.FIL_100_CTNT2 AS GONGGEUM_GYEJWA
+          ,T1.SIGUMGO_AC_NM AS GONGGEUM_GYEJWA_NM
+          ,LPAD(T1.LINKAC_KWA_C, 3, '0')||LPAD(T1.LINK_ACSER, 9, '0') AS GONGGEUM_YUDONG_ACNO
+      FROM
+           ACL_SIGUMGO_MAS T1
+      WHERE 1=1
+           AND T1.SIGUMGO_ORG_C = 28
+           AND T1.SIGUMGO_HOIKYE_YR IN ('2023', '9999')
+           AND DECODE(NVL('', 99), 99, 99, T1.ICH_SIGUMGO_HOIKYE_C) = DECODE(NVL('', 99), 99, 99, '')
+           AND T1.AC_GRBRNO LIKE '' || '%'
+
+           AND (T1.ICH_SIGUMGO_GUN_GU_C = '0' OR '0' = -1)
+           AND T1.SIGUMGO_AC_B LIKE '' || '%'
+           AND T1.FIL_100_CTNT2 IN (
+                SELECT REGEXP_SUBSTR(a.LangList, '[^|]+', 1, LEVEL) AS split_result
+                  FROM (SELECT '02805001600000023' AS LangList
+                        FROM DUAL ) A
+                CONNECT BY LEVEL <= LENGTH(REGEXP_REPLACE(a.LangList, '[^|]+' , '')) + 1
+           )
+           AND T1.MNG_NO = 1
+           AND T1.SIGUMGO_AGE_AC_G IN (0, 1)
+     ) T1
+    ,RPT_GONGGEUM_JAN T2
+WHERE 1=1
+     AND T1.GONGGEUM_GYEJWA = T2.GONGGEUM_GYEJWA
+     AND T1.GONGGEUM_GEUMGO_CD = T2.GEUMGO_CODE
+     AND T2.KEORAEIL = '20240131'
+     AND T1.GONGGEUM_YUDONG_ACNO LIKE '' || '%'
+GROUP BY
+     T1.GONGGEUM_HOIGYE_CODE
+    ,T2.GONGGEUM_GYEJWA
+    ,T1.GONGGEUM_GYEJWA_NM
+    ,T1.GONGGEUM_YUDONG_ACNO
+ORDER BY
+     T2.GONGGEUM_GYEJWA
+
+
+--------------------------------------------------------------------
+
+      SELECT
+           T1.SIGUMGO_ORG_C AS GONGGEUM_GEUMGO_CD
+          ,T1.ICH_SIGUMGO_HOIKYE_C AS GONGGEUM_HOIGYE_CODE
+          ,T1.FIL_100_CTNT2 AS GONGGEUM_GYEJWA
+          ,T1.SIGUMGO_AC_NM AS GONGGEUM_GYEJWA_NM
+          ,LPAD(T1.LINKAC_KWA_C, 3, '0')||LPAD(T1.LINK_ACSER, 9, '0') AS GONGGEUM_YUDONG_ACNO
+      FROM
+           ACL_SIGUMGO_MAS T1
+      WHERE 1=1
+           AND T1.SIGUMGO_ORG_C = 28
+           AND T1.SIGUMGO_HOIKYE_YR IN ('2023', '9999')
+           AND DECODE(NVL('', 99), 99, 99, T1.ICH_SIGUMGO_HOIKYE_C) = DECODE(NVL('', 99), 99, 99, '')
+           AND T1.AC_GRBRNO LIKE '' || '%'
+
+           AND (T1.ICH_SIGUMGO_GUN_GU_C = '0' OR '0' = -1)
+           AND T1.SIGUMGO_AC_B LIKE '' || '%'
+           AND T1.FIL_100_CTNT2 = '02805001600000023'
+
+
+      ------------------------------------------
+
+      SELECT * FROM ACL_SIGUMGO_MAS WHERE FIL_100_CTNT2 = '02805001600000023'
+
+
+      SELECT
+           T1.SIGUMGO_ORG_C AS GONGGEUM_GEUMGO_CD
+          ,T1.ICH_SIGUMGO_HOIKYE_C AS GONGGEUM_HOIGYE_CODE
+          ,T1.FIL_100_CTNT2 AS GONGGEUM_GYEJWA
+          ,T1.SIGUMGO_AC_NM AS GONGGEUM_GYEJWA_NM
+          ,LPAD(T1.LINKAC_KWA_C, 3, '0')||LPAD(T1.LINK_ACSER, 9, '0') AS GONGGEUM_YUDONG_ACNO
+      FROM
+           ACL_SIGUMGO_MAS T1
+      WHERE 1=1
+           AND T1.SIGUMGO_ORG_C = 28
+           AND T1.SIGUMGO_HOIKYE_YR IN ('2023', '9999')
+           AND DECODE(NVL('', 99), 99, 99, T1.ICH_SIGUMGO_HOIKYE_C) = DECODE(NVL('', 99), 99, 99, '')
+           AND T1.AC_GRBRNO LIKE '' || '%'
+
+           AND (T1.ICH_SIGUMGO_GUN_GU_C = '0' OR '0' = -1)
+           AND T1.SIGUMGO_AC_B LIKE '' || '%'
+           AND T1.FIL_100_CTNT2 IN (
+                SELECT REGEXP_SUBSTR(a.LangList, '[^|]+', 1, LEVEL) AS split_result
+                  FROM (SELECT '02805001600000023' AS LangList
+                        FROM DUAL ) A
+                CONNECT BY LEVEL <= LENGTH(REGEXP_REPLACE(a.LangList, '[^|]+' , '')) + 1
+           )
+           AND T1.MNG_NO = 1
+           AND T1.SIGUMGO_AGE_AC_G IN (0, 1)
+
+
+      =========================== XDA ID:[tom.ich.rpt.xda.xSelectListICH030314By02]===============================
+SELECT
+     T1.GONGGEUM_HOIGYE_CODE
+    ,T2.GONGGEUM_GYEJWA
+    ,T1.GONGGEUM_YUDONG_ACNO
+    ,T1.GONGGEUM_GYEJWA_NM
+    ,SUM(T2.BFJAN) AS BEF_JAN
+    ,SUM(T2.JIAMT) AS JIGEUB
+    ,SUM(T2.IPAMT) AS IPGEUM
+    ,SUM(T2.JANAEK) AS HYUN_JAN
+FROM
+     (
+      SELECT
+           T1.SIGUMGO_ORG_C AS GONGGEUM_GEUMGO_CD
+          ,T1.ICH_SIGUMGO_HOIKYE_C AS GONGGEUM_HOIGYE_CODE
+          ,T1.FIL_100_CTNT2 AS GONGGEUM_GYEJWA
+          ,T1.SIGUMGO_AC_NM AS GONGGEUM_GYEJWA_NM
+          ,LPAD(T1.LINKAC_KWA_C, 3, '0')||LPAD(T1.LINK_ACSER, 9, '0') AS GONGGEUM_YUDONG_ACNO
+      FROM
+           ACL_SIGUMGO_MAS T1
+      WHERE 1=1
+           AND T1.SIGUMGO_ORG_C = 28
+           AND T1.SIGUMGO_HOIKYE_YR IN ('2023', '9999')
+           AND DECODE(NVL('', 99), 99, 99, T1.ICH_SIGUMGO_HOIKYE_C) = DECODE(NVL('', 99), 99, 99, '')
+           AND T1.AC_GRBRNO LIKE '' || '%'
+
+           AND (T1.ICH_SIGUMGO_GUN_GU_C = '0' OR '0' = -1)
+           AND T1.SIGUMGO_AC_B LIKE '' || '%'
+           AND T1.FIL_100_CTNT2 IN (
+                SELECT REGEXP_SUBSTR(a.LangList, '[^|]+', 1, LEVEL) AS split_result
+                  FROM (SELECT '02805001600000023' AS LangList
+                        FROM DUAL ) A
+                CONNECT BY LEVEL <= LENGTH(REGEXP_REPLACE(a.LangList, '[^|]+' , '')) + 1
+           )
+           AND T1.MNG_NO = 1
+           AND T1.SIGUMGO_AGE_AC_G IN (0, 1)
+     ) T1
+    ,RPT_GONGGEUM_JAN T2
+WHERE 1=1
+     AND T1.GONGGEUM_GYEJWA = T2.GONGGEUM_GYEJWA
+     AND T1.GONGGEUM_GEUMGO_CD = T2.GEUMGO_CODE
+     AND T2.KEORAEIL = '20240131'
+     AND T1.GONGGEUM_YUDONG_ACNO LIKE '' || '%'
+GROUP BY
+     T1.GONGGEUM_HOIGYE_CODE
+    ,T2.GONGGEUM_GYEJWA
+    ,T1.GONGGEUM_GYEJWA_NM
+    ,T1.GONGGEUM_YUDONG_ACNO
+ORDER BY
+     T2.GONGGEUM_GYEJWA
+
+---------------------------------------------------------------
+
+SELECT
+     T1.GONGGEUM_HOIGYE_CODE
+    ,T2.GONGGEUM_GYEJWA
+    ,T1.GONGGEUM_YUDONG_ACNO
+    ,T1.GONGGEUM_GYEJWA_NM
+    ,SUM(T2.BFJAN) AS BEF_JAN
+    ,SUM(T2.JIAMT) AS JIGEUB
+    ,SUM(T2.IPAMT) AS IPGEUM
+    ,SUM(T2.JANAEK) AS HYUN_JAN
+FROM
+     (
+      SELECT
+           T1.SIGUMGO_ORG_C AS GONGGEUM_GEUMGO_CD
+          ,T1.ICH_SIGUMGO_HOIKYE_C AS GONGGEUM_HOIGYE_CODE
+          ,T1.FIL_100_CTNT2 AS GONGGEUM_GYEJWA
+          ,T1.SIGUMGO_AC_NM AS GONGGEUM_GYEJWA_NM
+          ,LPAD(T1.LINKAC_KWA_C, 3, '0')||LPAD(T1.LINK_ACSER, 9, '0') AS GONGGEUM_YUDONG_ACNO
+      FROM
+           ACL_SIGUMGO_MAS T1
+      WHERE 1=1
+           AND T1.SIGUMGO_ORG_C = 28
+           AND T1.SIGUMGO_HOIKYE_YR IN ('2023', '9999')
+           AND DECODE(NVL('', 99), 99, 99, T1.ICH_SIGUMGO_HOIKYE_C) = DECODE(NVL('', 99), 99, 99, '')
+           AND T1.AC_GRBRNO LIKE '' || '%'
+
+           AND (T1.ICH_SIGUMGO_GUN_GU_C = '0' OR '0' = -1)
+           AND T1.SIGUMGO_AC_B LIKE '' || '%'
+           AND T1.FIL_100_CTNT2 IN (
+                SELECT REGEXP_SUBSTR(a.LangList, '[^|]+', 1, LEVEL) AS split_result
+                  FROM (SELECT '02800043210000499|02800075690001599|02805001600000023' AS LangList
+                        FROM DUAL ) A
+                CONNECT BY LEVEL <= LENGTH(REGEXP_REPLACE(a.LangList, '[^|]+' , '')) + 1
+           )
+           AND T1.MNG_NO = 1
+           AND T1.SIGUMGO_AGE_AC_G IN (0, 1)
+     ) T1
+    ,RPT_GONGGEUM_JAN T2
+WHERE 1=1
+     AND T1.GONGGEUM_GYEJWA = T2.GONGGEUM_GYEJWA
+     AND T1.GONGGEUM_GEUMGO_CD = T2.GEUMGO_CODE
+     AND T2.KEORAEIL = '20240131'
+     AND T1.GONGGEUM_YUDONG_ACNO LIKE '' || '%'
+GROUP BY
+     T1.GONGGEUM_HOIGYE_CODE
+    ,T2.GONGGEUM_GYEJWA
+    ,T1.GONGGEUM_GYEJWA_NM
+    ,T1.GONGGEUM_YUDONG_ACNO
+ORDER BY
+     T2.GONGGEUM_GYEJWA
+
+
+=========================== XDA ID:[tom.ich.rpt.xda.xSelectListICH030314By01]===============================
+SELECT GONGGEUM_HOIGYE_CODE
+     , GONGGEUM_GYEJWA
+     , GONGGEUM_YUDONG_ACNO
+     , GONGGEUM_GYEJWA_NM
+     , BEF_JAN
+     , JIGEUB
+     , IPGEUM
+     , HYUN_JAN
+  FROM
+(
+       WITH AC_BY_DEPT AS
+       (
+           SELECT SGM.SIGUMGO_ACNO      AS GONGGEUM_GYEJWA
+                 , SGM.SIGUMGO_HOIKYE_C AS GONGGEUM_HOIGYE_CODE
+                 , SGM.SIGUMGO_AC_NM    AS GONGGEUM_GYEJWA_NM
+                 , LPAD(SGM.LINKAC_KWA_C, 3, '0')||LPAD(SGM.LINKAC_SER, 9, '0') AS GONGGEUM_YUDONG_ACNO
+                 , SGM.SIGUMGO_ORG_C
+             FROM SFI_ORG_DEPT_C_MNG OCM
+            INNER JOIN SFI_ORG_BY_DEPT_MNG OBD
+                    ON OCM.PADM_STD_ORG_C = OBD.PADM_STD_ORG_C
+            INNER JOIN RPT_JEONJA_AC_BY_DEPT_MNG ADM
+                    ON OBD.G_CC_DEPT_C = ADM.SL_GMGO_DEPT_C
+                   AND ADM.HOIKYE_YEAR IN (2023, '9999')
+            INNER JOIN ACL_SIGUMGO_MAS_SUB SGM
+                    ON SGM.SIGUMGO_ACNO = ADM.SGG_ACNO
+                   AND SGM.SIGUMGO_ORG_C = '28'
+            WHERE ('ALL' = NVL('6280000', 'ALL') OR OCM.REP_ORG_C = '6280000')
+              AND ('ALL' = NVL('6285873', 'ALL') OR OCM.PADM_STD_ORG_C = '6285873')
+              AND ('ALL' = NVL('', 'ALL') OR OBD.G_CC_DEPT_C = '')
+              AND ('ALL' = NVL('','ALL') OR SGM.AC_GRBRNO = '')
+              AND ('ALL' = NVL('', 'ALL') OR SGM.SIGUMGO_HOIKYE_C = '')
+              AND ('ALL' = NVL('', 'ALL') OR TO_CHAR(SGM.SIGUMGO_AC_B) = '')
+              AND ('ALL' = NVL('','ALL') OR SGM.SIGUMGO_ACNO = '')
+              AND SGM.SIGUMGO_AGE_AC_G IN (0, 1)
+            GROUP BY SGM.SIGUMGO_ACNO, SGM.SIGUMGO_HOIKYE_C, SGM.LINKAC_KWA_C, SGM.LINKAC_SER, SGM.SIGUMGO_AC_NM, SGM.SIGUMGO_ORG_C
+       )
+       SELECT ACL.GONGGEUM_HOIGYE_CODE, ACL.GONGGEUM_GYEJWA, ACL.GONGGEUM_YUDONG_ACNO, ACL.GONGGEUM_GYEJWA_NM
+            , GGJ.BFJAN AS BEF_JAN
+            , GGJ.JIAMT AS JIGEUB
+            , GGJ.IPAMT AS IPGEUM
+            , GGJ.JANAEK AS HYUN_JAN
+         FROM AC_BY_DEPT ACL
+        INNER JOIN  RPT_GONGGEUM_JAN GGJ
+                ON GGJ.GEUMGO_CODE= ACL.SIGUMGO_ORG_C
+                AND GGJ.GONGGEUM_GYEJWA = ACL.GONGGEUM_GYEJWA
+        WHERE GGJ.KEORAEIL = '20240131'
+          AND ('ALL' = NVL('', 'ALL') OR REGEXP_LIKE(ACL.GONGGEUM_YUDONG_ACNO, ''))
+) A
+ORDER BY GONGGEUM_GYEJWA
