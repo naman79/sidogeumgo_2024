@@ -5,6 +5,8 @@
 --- 1. 전년도의 분의 자금운용이 포함되지 않는 문제가 있음  기존에  AND (A.REPORT_DATE >= SUBSTR(D.BAS_DT,0,4) || '0101' OR A.SIGUMGO_HOIKYE_YR <> 9999) 으로 판단하는 부분을 회계년도 조인 C.FYR = A.SIGUMGO_HOIKYE_YR 으로 변경
 --- 2. 02811035230000024 의 경우 68 감배정 지급이 사용안함으로 되어 있어 313,320 만큼 차이가 발생
 -- 당해년도 99 계좌의 잔액불일치: 인천이지만 회계이월 처리를 하지 않는 경우가 있음
+-- 2025.02.28 미분류 금액 검증하기: 인천 28, 강원 42, 춘천 110, 원주 130, 강릉 150, 충북 43, 충주 439, 제천 440
+    
 ----------------------------------------------------
 SELECT
     NVL(A.LAF_CD, '0') AS LAF_CD,
@@ -69,7 +71,7 @@ FROM
                 'AAAA' AS GOF_CD,
                 'AAAA' AS GOF_NM,
                 42 AS GEUMGO_CODE,
-                '20250224' AS BAS_DT,
+                '20250226' AS BAS_DT,
                 TO_NUMBER(2024) AS  BEF_HOIKYE_YR,
                 TO_NUMBER(2025) AS HOIKYE_YR
             FROM DUAL
@@ -128,10 +130,8 @@ FROM
                      A.GONGGEUM_GYEJWA,
                      A.JANAEK
                  FROM RPT_GONGGEUM_JAN A
-                          INNER JOIN BATCH_PARAM D ON 1=1
+                 INNER JOIN BATCH_PARAM D ON 1=1
                  WHERE 1=1
-                   -- 공금잔액 이월은 2금고만 적용(인천 제외)
-                   AND A.GEUMGO_CODE <> 28
                    AND A.KEORAEIL = D.BEF_HOIKYE_YR || 1231
                    AND A.GEUMGO_CODE = D.GEUMGO_CODE
                    AND A.HOIGYE_YEAR = 9999
@@ -158,26 +158,6 @@ FROM
                    AND LPAD(A.SIGUMGO_TRX_G,2,'0')||LPAD(A.SIGUMGO_IP_TRX_G,2,'0')||LPAD(A.SIGUMGO_JI_TRX_G,2,'0') NOT IN (SELECT CMM_DTL_C FROM SFI_CMM_C_DAT WHERE CMM_C_NM = '이호조세입세출송신용' AND USE_YN = 'Y')
                    AND NOT (A.SIGUMGO_ORG_C = 28 AND A.ICH_SIGUMGO_GUN_GU_C IN('260','720'))
                  GROUP BY C.FYR, C.GONGGEUM_GYEJWA
-                 UNION ALL
-                 -- 인천의 99계좌는 잔액을 포함시키지 않기에 미분류 잔액에 포함
-                 SELECT /*+ INDEX(A RPT_GONGGEUM_JAN_IX_01) */
-                     TO_CHAR(D.HOIKYE_YR) AS HOIKYE_YR,
-                     A.GONGGEUM_GYEJWA,
-                     A.JANAEK
-                 FROM RPT_GONGGEUM_JAN A
-                          INNER JOIN BATCH_PARAM D ON 1=1
-                 WHERE 1=1
-                   -- 공금잔액 이월은 2금고만 적용(인천 제외)
-                   AND A.GEUMGO_CODE = 28
-                   AND A.KEORAEIL = D.BEF_HOIKYE_YR || 1231
-                   AND A.GEUMGO_CODE = D.GEUMGO_CODE
-                   AND A.HOIGYE_YEAR = 9999
-                   AND A.GONGGEUM_GYEJWA IN (
-                     SELECT GONGGEUM_GYEJWA
-                     FROM RPT_FISG_INFO_MAP
-                     WHERE FYR = D.HOIKYE_YR
-                       AND USE_YN = 'Y'
-                 )
                  UNION ALL
                  SELECT C.FYR AS HOIKYE_YR,
                         C.GONGGEUM_GYEJWA,
