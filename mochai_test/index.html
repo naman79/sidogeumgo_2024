@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>Mocha+Chai 오프라인 테스트</title>
+    <link rel="stylesheet" href="./lib/mocha.css">
+</head>
+<body>
+<div id="mocha"></div>
+
+<!-- Mocha, Chai 로컬 파일 연결 -->
+<script src="./lib/mocha.js"></script>
+<script src="./lib/chai.js" type="text/javascript"></script>
+
+<script>
+
+    mocha.setup('bdd');
+    const expect = chai.expect;
+
+    // 테스트 대상 함수
+    function multiply(a, b) {
+        return a * b;
+    }
+
+    // 테스트 코드
+    describe('곱셈 함수 테스트', function() {
+        it('2 * 3은 6이어야 함', function() {
+            expect(multiply(2, 3)).to.equal(6);
+        });
+
+        it('0과 곱하면 항상 0을 반환', function() {
+            expect(multiply(100, 0)).to.equal(0);
+        });
+    });
+
+    mocha.run();
+</script>
+</body>
+</html>
