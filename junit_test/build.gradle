@@ -1,0 +1,51 @@
+plugins {
+    id 'java'
+    id 'idea'
+    id 'eclipse'
+    id 'application'
+}
+
+group 'org'
+version '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.2'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.9.2'
+}
+
+application {
+    mainClass = 'org.FileDataReaderTest'
+}
+
+test {
+    useJUnitPlatform()
+    testLogging {
+        events "passed", "skipped", "failed"
+    }
+}
+
+sourceCompatibility = '11'
+targetCompatibility = '11'
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
+
+// IDE 설정
+idea {
+    module {
+        downloadJavadoc = true
+        downloadSources = true
+    }
+}
+
+eclipse {
+    classpath {
+        downloadJavadoc = true
+        downloadSources = true
+    }
+} 
