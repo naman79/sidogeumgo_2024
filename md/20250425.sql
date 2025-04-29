@@ -191,3 +191,17 @@ SELECT SGG_ACNO
                   -- and ADM.SGG_ACNO = '02800090100000099'
                 GROUP BY SGM.SIGUMGO_ACNO, SGM.SIGUMGO_AC_NM, SGM.SIGUMGO_HOIKYE_C, HKC.HOIKYE_NM
                 ORDER BY SGM.SIGUMGO_ACNO
+
+
+
+                    select * from ACL_SIGUMGO_MAS_SUB
+                    where 1=1
+                    and SIGUMGO_ORG_C = '28'
+                    and SIGUMGO_ACNO = '02800090100000099'
+
+
+                    select * from ACL_SIGUMGO_MAS_SUB
+                    where 1=1
+                    and SIGUMGO_ORG_C = '28'
+
+select * from rpt_hoikye_cd
