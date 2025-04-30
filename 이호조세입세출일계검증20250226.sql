@@ -6,7 +6,7 @@
 --- 2. 02811035230000024 의 경우 68 감배정 지급이 사용안함으로 되어 있어 313,320 만큼 차이가 발생
 -- 당해년도 99 계좌의 잔액불일치: 인천이지만 회계이월 처리를 하지 않는 경우가 있음
 -- 2025.02.28 미분류 금액 검증하기: 인천 28, 강원 42, 춘천 110, 원주 130, 강릉 150, 충북 43, 충주 439, 제천 440
-    
+
 ----------------------------------------------------
 SELECT
     NVL(A.LAF_CD, '0') AS LAF_CD,
@@ -18,7 +18,7 @@ SELECT
     NVL(A.ACNT_DV_MSTR_CD, '0') AS ACNT_DV_MSTR_CD,
     NVL(A.ACNT_DV_MSTR_NM, '0') AS ACNT_DV_MSTR_NM,
     NVL(A.ACNT_DV_NM, '0') AS ACNT_DV_NM,
-    NVL(A.GONGGEUM_GYEJWA, '0') AS GONGGEUM_GYEJWA,
+    -- NVL(A.GONGGEUM_GYEJWA, '0') AS GONGGEUM_GYEJWA,
     NVL(A.ACNT_YMD, '0') AS ACNT_YMD,
     SUM(NVL(A.NU_TXRV_DD_SUM_AMT, 0)) AS 세입누계,
     SUM(NVL(A.NU_ANE_AMT, 0)) AS 세출누계,
@@ -70,8 +70,8 @@ FROM
             SELECT
                 'AAAA' AS GOF_CD,
                 'AAAA' AS GOF_NM,
-                42 AS GEUMGO_CODE,
-                '20250226' AS BAS_DT,
+                110 AS GEUMGO_CODE,
+                '20250228' AS BAS_DT,
                 TO_NUMBER(2024) AS  BEF_HOIKYE_YR,
                 TO_NUMBER(2025) AS HOIKYE_YR
             FROM DUAL
@@ -339,5 +339,8 @@ FROM
         WHERE 1=1
         GROUP BY C.LAF_CD,  C.LAF_NM, D.GOF_CD, D.GOF_NM, C.FYR, C.ACNT_DV_CD, C.ACNT_DV_MSTR_CD, C.ACNT_DV_MSTR_NM, C.ACNT_DV_NM, C.GONGGEUM_GYEJWA,  C.UNYONG_JANAEK, C.GONGGEUM_JANAEK, C.MI_JANAEK, D.BAS_DT
     ) A
-GROUP BY A.LAF_CD, A.LAF_NM, A.GOF_CD, A.GOF_NM, A.FYR, A.GONGGEUM_GYEJWA, A.ACNT_DV_CD, A.ACNT_DV_MSTR_CD, A.ACNT_DV_MSTR_NM, A.ACNT_DV_NM, A.ACNT_YMD, A.STBX_BANK_CD
-ORDER BY A.FYR, A.GONGGEUM_GYEJWA
+GROUP BY A.LAF_CD, A.LAF_NM, A.GOF_CD, A.GOF_NM, A.FYR
+       -- , A.GONGGEUM_GYEJWA
+       , A.ACNT_DV_CD, A.ACNT_DV_MSTR_CD, A.ACNT_DV_MSTR_NM, A.ACNT_DV_NM, A.ACNT_YMD, A.STBX_BANK_CD
+ORDER BY A.FYR
+       -- , A.GONGGEUM_GYEJWA

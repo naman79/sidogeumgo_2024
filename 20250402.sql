@@ -1,0 +1,1 @@
+select * from rpt_rmok_info
