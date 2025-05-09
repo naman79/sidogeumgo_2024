@@ -14,8 +14,8 @@ public class DataFileParserTest {
     public void testParseLine_basic() throws IOException {
         DataDiffRunner runner = new DataDiffRunner();
         runner.runDiff(
-                "c:\\Users\\admin\\Downloads\\unyong_info_20250428_20250429012515.dat",
                 "c:\\Users\\admin\\Downloads\\unyong_info_20250425_20250426012520.dat",
+                "c:\\Users\\admin\\Downloads\\unyong_info_20250507_20250508012511.dat",
                 "EUC-KR");
     }
 
