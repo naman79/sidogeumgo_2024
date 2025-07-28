@@ -1,1 +1,1 @@
-select * from rpt_unyong_info_his
+select * from rpt_unyong_gyejwa_his
