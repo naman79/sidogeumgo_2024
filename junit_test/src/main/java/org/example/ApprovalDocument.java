@@ -33,10 +33,13 @@ public class ApprovalDocument {
         switch (action) {
             case SUBMIT:
                 if (currentStep == ApprovalStep.DRAFTER) {
+                    System.out.println("drafter submit!!");
+
                     lastStatus = ApprovalStatus.IN_PROGRESS;
                     actor.setStatus(ApprovalStatus.APPROVED);
                     actor.setTimestamp(formatter.format(new Date()));
                     approvalLineStatusChange(approvalLine, currentStep.next(), ApprovalStatus.PENDING);
+
                 } else if (currentStep == ApprovalStep.APPROVER1) {
                     lastStatus = ApprovalStatus.IN_PROGRESS;
                     actor.setStatus(ApprovalStatus.APPROVED);
@@ -52,11 +55,60 @@ public class ApprovalDocument {
                     approvalLineStatusChange(approvalLine, currentStep.next(), ApprovalStatus.PENDING);
                 }
 
+                addHistory(actor, approvalLine);
                 break;
-            case RESUBMIT:
+
+            case APPROVE:
+                if (actor.getStep() != currentStep) {
+                    throw new IllegalArgumentException("결재 단계가 일치하지 않습니다.");
+                }
+
+                actor.setTimestamp(formatter.format(new Date()));
+
+                if (approvalLine.size() == 0 && actor.getStep() == ApprovalStep.APPROVER1) {
+                    Approver drafter = new Approver(actor.getUserId(), actor.getUserNm(), ApprovalStep.DRAFTER,
+                            ApprovalStatus.APPROVED, formatter.format(new Date()));
+                    addHistory(drafter, approvalLine);
+                }
+
+                // 2단계 결재자가 기안자와 동일할때 기안자의 상태 정보도 없데이트
+                if (approvalLine.size() > 0 && actor.getStep() == ApprovalStep.APPROVER1) {
+                    if (approvalLine.get(0).getUserId().equals(actor.getUserId())) {
+                        approvalLineStatusChange(approvalLine, ApprovalStep.DRAFTER, ApprovalStatus.APPROVED);
+                    }
+                }
+
+                // 반력의 경우 대기상태로 바꿔야 하나 결재로직 단순화를 위해서 상위 결재자 삭제
+                if (approvalLine.size() > currentStep.getLevel()
+                        && approvalLine.get(currentStep.getLevel()).getStatus() == ApprovalStatus.REJECTED) {
+                    approvalLine.remove(currentStep.getLevel());
+                }
+
+                if (actor.isFinalApprover()) {
+                    lastStatus = ApprovalStatus.APPROVED;
+                    actor.setStatus(ApprovalStatus.APPROVED);
+                    actor.setTimestamp(formatter.format(new Date()));
+                    completed = true;
+                    addHistory(actor, approvalLine);
+                } else {
+                    lastStatus = ApprovalStatus.IN_PROGRESS;
+                    actor.setStatus(ApprovalStatus.APPROVED);
+                    actor.setTimestamp(formatter.format(new Date()));
+
+                    if (approvalLine.size() < currentStep.getLevel()) {
+                        addHistory(actor, approvalLine);
+                    } else {
+                        approvalLineStatusChange(approvalLine, currentStep, ApprovalStatus.APPROVED);
+                    }
+                }
 
                 break;
+
             case REJECT:
+                // 반려의 경우 진행단계 다음 단계로 결재자 조정
+                actor.setStep(actor.getStep().next());
+                currentStep = actor.getStep();
+
                 if (currentStep == ApprovalStep.DRAFTER) {
                     throw new IllegalArgumentException("기안자는 반려할 수 없습니다.");
                 } else {
@@ -80,72 +132,37 @@ public class ApprovalDocument {
                 }
 
                 break;
-            case APPROVE:
-                if (actor.getStep() != currentStep) {
-                    throw new IllegalArgumentException("결재 단계가 일치하지 않습니다.");
-                }
 
-                if (approvalLine.size() == 0 && actor.getStep() == ApprovalStep.APPROVER1) {
-                    Approver drafter = new Approver(actor.getUserId(), actor.getUserNm(), ApprovalStep.DRAFTER,
-                            ApprovalStatus.APPROVED, formatter.format(new Date()));
-                    addHistory(drafter, approvalLine);
-                }
-
-                if (actor.isFinalApprover()) {
-                    lastStatus = ApprovalStatus.APPROVED;
-                    actor.setStatus(ApprovalStatus.APPROVED);
-                    actor.setTimestamp(formatter.format(new Date()));
-                    completed = true;
-                    addHistory(actor, approvalLine);
-                } else {
-                    lastStatus = ApprovalStatus.IN_PROGRESS;
-                    actor.setStatus(ApprovalStatus.APPROVED);
-                    actor.setTimestamp(formatter.format(new Date()));
-
-                    if (approvalLine.size() < currentStep.getLevel()) {
-                        addHistory(actor, approvalLine);
-                    } else {
-                        approvalLine.get(currentStep.getLevel() - 1).setStatus(ApprovalStatus.APPROVED);
-                        approvalLine.get(currentStep.getLevel() - 1).setTimestamp(formatter.format(new Date()));
-                    }
-                }
-
-                // 반력의 경우 대기상태로 바꿔야 하나 결재로직 단순화를 위해서 상위 결재자 삭제
-                if (approvalLine.size() > currentStep.getLevel()) {
-                    approvalLine.remove(currentStep.next().getLevel() - 1);
-                }
-
-                break;
             case WITHDRAW:
                 // 최종 결재상태는 회수됨으로 변경
                 lastStatus = ApprovalStatus.WITHDRAWED;
 
                 // 최종 결재자 상태는 대기로 변경
-                actor.setStatus(ApprovalStatus.PENDING);
-                actor.setTimestamp(formatter.format(new Date()));
-
-                // 전단계 결재자의 정보 변경하기
-                Approver previousApprover = approvalLine.get(actor.getStep().previous().getLevel() - 1);
-                previousApprover.setStatus(ApprovalStatus.PENDING);
-                previousApprover.setTimestamp(formatter.format(new Date()));
-                approvalLine.set(actor.getStep().previous().getLevel() - 1, previousApprover);
+                approvalLineStatusChange(approvalLine, currentStep, ApprovalStatus.PENDING);
 
                 // 결재자가 2단계결재자인 경우(은행원이면서 4급이상) 기안과 결재가 한번에 가능하기에 해당 결재의 회수는 기안단계로 바로 넘어가도록 처리
                 if (actor.getStep() == ApprovalStep.APPROVER1) {
                     if (approvalLine.get(0).getUserId().equals(actor.getUserId())) {
-                        approvalLine.get(0).setStatus(ApprovalStatus.PENDING);
-                        approvalLine.get(0).setTimestamp(formatter.format(new Date()));
+                        approvalLineStatusChange(approvalLine, ApprovalStep.DRAFTER, ApprovalStatus.PENDING);
                         approvalLine.remove(1);
                         currentStep = ApprovalStep.DRAFTER;
                         lastStatus = ApprovalStatus.WITHDRAWED;
                     }
                 }
                 break;
+            case RESUBMIT:
+
+                break;
             case DELETE:
                 if (currentStep == ApprovalStep.DRAFTER) {
                     lastStatus = ApprovalStatus.DELETED;
-                    actor.setStatus(ApprovalStatus.DELETED);
-                    actor.setTimestamp(formatter.format(new Date()));
+
+                    if (approvalLine.get(0).getStatus() == ApprovalStatus.PENDING) {
+                        approvalLineStatusChange(approvalLine, ApprovalStep.DRAFTER, ApprovalStatus.DELETED);
+                    } else {
+                        throw new IllegalArgumentException("삭제는 대기상태에서만 가능합니다.");
+                    }
+
                 } else {
                     throw new IllegalArgumentException("삭제는 기안자만 가능합니다.");
                 }
@@ -155,13 +172,13 @@ public class ApprovalDocument {
                 break;
         }
 
+        System.out.println("approvalLine : " + approvalLine.toString());
         return approvalLine;
 
     }
 
-    // addHistory approvalLine
+    // 기존 결재선 데이터면 업데이트하고 아니면 결재선 신규하기
     public void addHistory(Approver actor, List<Approver> approvalLine) {
-        actor.setTimestamp(formatter.format(new Date()));
 
         for (Approver approver : approvalLine) {
             if (approver.getStep() == actor.getStep() && approver.getUserId() == actor.getUserId()) {
@@ -171,6 +188,8 @@ public class ApprovalDocument {
                 return;
             }
         }
+
+        approvalLine.add(actor);
     }
 
     // getStatus

@@ -38,6 +38,10 @@ public class Approver {
         return timestamp;
     }
 
+    public void setStep(ApprovalStep step) {
+        this.step = step;
+    }
+
     // setter Status
     public void setStatus(ApprovalStatus status) {
         this.status = status;
