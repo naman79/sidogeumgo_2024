@@ -3,11 +3,14 @@ import org.example.ApprovalDocument;
 import org.example.ApprovalStatus;
 import org.example.ApprovalStep;
 import org.example.Approver;
+import org.example.ApprovalProcessor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -149,9 +152,47 @@ public class ApprovalDocumentTest {
     void testDeleteByDrafter() {
         // 기안자가 상신
         approvalLine = document.performAction(drafter, ApprovalAction.SUBMIT, approvalLine);
+
+        // 기안자가 회수
+        approvalLine = document.performAction(drafter, ApprovalAction.WITHDRAW, approvalLine);
+
         // 기안자가 삭제
         approvalLine = document.performAction(drafter, ApprovalAction.DELETE, approvalLine);
         assertEquals(ApprovalStatus.DELETED, document.getStatus());
         assertEquals(ApprovalStatus.DELETED, drafter.getStatus());
+    }
+
+    // ApprovalProcessor 테스트 상신
+    @Test
+    void testApprovalProcessor() {
+        List<Map<String, String>> approvalLine = new ArrayList<>();
+        Map<String, String> drafter = new HashMap<>();
+        drafter.put("S1_CONFJ_ID", "");
+        drafter.put("S1_CONFJ_NM", "");
+        drafter.put("S1_GYLJ_S_G", "");
+        drafter.put("S1_CONF_DT", "");
+        approvalLine.add(drafter);
+        Map<String, String> approver1 = new HashMap<>();
+        approver1.put("S2_CONFJ_ID", "");
+        approver1.put("S2_CONFJ_NM", "");
+        approver1.put("S2_GYLJ_S_G", "");
+        approver1.put("S2_CONF_DT", "");
+        approvalLine.add(approver1);
+        Map<String, String> approver2 = new HashMap<>();
+        approver2.put("S3_CONFJ_ID", "");
+        approver2.put("S3_CONFJ_NM", "");
+        approver2.put("S3_GYLJ_S_G", "");
+        approver2.put("S3_CONF_DT", "");
+        approvalLine.add(approver2);
+        Map<String, String> approver3 = new HashMap<>();
+        approver3.put("S4_CONFJ_ID", "");
+        approver3.put("S4_CONFJ_NM", "");
+        approver3.put("S4_GYLJ_S_G", "");
+        approver3.put("S4_CONF_DT", "");
+        approvalLine.add(approver3);
+
+        ApprovalProcessor processor = new ApprovalProcessor("drafter", "drafter", "1", "0", approvalLine);
+        processor.performAction(ApprovalAction.SUBMIT);
+        assertEquals(ApprovalStatus.IN_PROGRESS, processor.getDocument().getStatus());
     }
 }
