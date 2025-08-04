@@ -160,12 +160,15 @@ public class ApprovalDocument {
                 approvalLineStatusChange(approvalLine, currentStep, ApprovalStatus.PENDING);
 
                 // 결재자가 2단계결재자인 경우(은행원이면서 4급이상) 기안과 결재가 한번에 가능하기에 해당 결재의 회수는 기안단계로 바로 넘어가도록 처리
-                if (actor.getStep() == ApprovalStep.APPROVER1) {
-                    if (approvalLine.get(0).getUserId().equals(actor.getUserId())) {
+                if (currentStep == ApprovalStep.APPROVER1) {
+                    if (approvalLine.get(ApprovalStep.DRAFTER.getLevel() - 1).getUserId().equals(actor.getUserId())) {
+                        // 기안자를 대기로 변경
                         approvalLineStatusChange(approvalLine, ApprovalStep.DRAFTER, ApprovalStatus.PENDING);
-                        approvalLine.remove(1);
+
+                        // 2단계결재자 이상 삭제
+                        approvalLineClearFromIndex(approvalLine, ApprovalStep.APPROVER1.getLevel() - 1);
                         currentStep = ApprovalStep.DRAFTER;
-                        lastStatus = ApprovalStatus.WITHDRAWED;
+
                     }
                 }
                 break;
