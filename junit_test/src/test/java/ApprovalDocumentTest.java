@@ -195,4 +195,39 @@ public class ApprovalDocumentTest {
         processor.performAction(ApprovalAction.SUBMIT);
         assertEquals(ApprovalStatus.IN_PROGRESS, processor.getDocument().getStatus());
     }
+
+    // ApprovalProcessor 테스트 2단계 결재 테스트
+    @Test
+    void testApprovalProcessor2() {
+        List<Map<String, String>> approvalLine = new ArrayList<>();
+        Map<String, String> drafter = new HashMap<>();
+        drafter.put("S1_CONFJ_ID", "drafter");
+        drafter.put("S1_CONFJ_NM", "기안자");
+        drafter.put("S1_GYLJ_S_G", ApprovalStatus.APPROVED.getCode());
+        drafter.put("S1_CONF_DT", "");
+        approvalLine.add(drafter);
+        Map<String, String> approver1 = new HashMap<>();
+        approver1.put("S2_CONFJ_ID", "");
+        approver1.put("S2_CONFJ_NM", "");
+        approver1.put("S2_GYLJ_S_G", "");
+        approver1.put("S2_CONF_DT", "");
+        approvalLine.add(approver1);
+        Map<String, String> approver2 = new HashMap<>();
+        approver2.put("S3_CONFJ_ID", "");
+        approver2.put("S3_CONFJ_NM", "");
+        approver2.put("S3_GYLJ_S_G", "");
+        approver2.put("S3_CONF_DT", "");
+        approvalLine.add(approver2);
+        Map<String, String> approver3 = new HashMap<>();
+        approver3.put("S4_CONFJ_ID", "");
+        approver3.put("S4_CONFJ_NM", "");
+        approver3.put("S4_GYLJ_S_G", "");
+        approver3.put("S4_CONF_DT", "");
+        approvalLine.add(approver3);
+
+        ApprovalProcessor processor = new ApprovalProcessor("approver1", "approver1", "1",
+                ApprovalStatus.APPROVED.getCode(), approvalLine);
+        processor.performAction(ApprovalAction.APPROVE);
+        assertEquals(ApprovalStatus.IN_PROGRESS, processor.getDocument().getStatus());
+    }
 }
