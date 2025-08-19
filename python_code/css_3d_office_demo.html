@@ -1,0 +1,696 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CSS 3D Office – Demo</title>
+  <style>
+    /* ====== Global / Root ====== */
+    body {
+      position: relative;
+      margin: 0;
+      width: 100vw;
+      height: 100vh;
+      perspective: 1000px;
+      overflow: hidden;
+      background: #0004;
+    
+      *, *::before, *::after {
+        transform-style: preserve-3d;
+        position: absolute;
+        box-sizing: border-box;
+      }
+    }
+    
+    /* ====== Cube Utility ====== */
+    .cube {
+      --w: 10px; /* width      */
+      --h: 10px; /* height     */
+      --d: 10px; /* depth      */
+      --c: #fff; /* base color */
+      --b: ;     /* background */
+      width: var(--w);
+      height: var(--d);
+      background: var(--c);
+    
+      &::before,
+      &::after {
+        content: "";
+        width: var(--w);
+        height: var(--h);
+        background: var(--b) var(--c);
+        top: 100%;
+        transform-origin: 50% 0;
+        transform: rotate3d(1, 0, 0, -90deg) translate3d(0, -100%, 0);
+        box-shadow: inset 0 0 0 100vmax #0001;
+      }
+    
+      &::after {
+        top: auto;
+        bottom: 100%;
+        transform-origin: 50% 100%;
+        transform: rotate3d(1, 0, 0, -90deg);
+      }
+    
+      > * {
+        width: var(--w);
+        height: var(--d);
+        background: var(--c);
+        transform: translate3d(0, 0, var(--h));
+    
+    
+        &::before,
+        &::after {
+          content: "";
+          height: var(--h);
+          width: var(--d);
+          background: var(--b) var(--c);
+          transform-origin: 0 0;
+          transform: rotate(90deg) rotate3d(1, 0, 0, -90deg);
+          box-shadow: inset 0 0 0 100vmax #00000008;
+        }
+    
+        &::after {
+          left: 100%;
+        }
+      }
+    }
+    
+    @keyframes spin {
+      0% { transform: translate(-50%, -50%) rotate3d(1,0,0,60deg) rotate3d(0,0,1, 0deg); }
+      100% { transform: translate(-50%, -50%) rotate3d(1,0,0,60deg) rotate3d(0,0,1, 360deg);}
+    }
+    
+    
+    article {
+      /*   scale: 2;
+        translate: 0 400px; */
+      width: 600px;
+      height: 600px;
+      background: 
+        radial-gradient(farthest-side, #7a70 60%, #7a7),
+        linear-gradient(#0000, #0000, #0302, #0000, #0000),
+        linear-gradient(90deg, #0000, #0000, #0302, #0000, #0000),
+        repeating-linear-gradient(45deg, #0000 0 2px, #00000008 0 4px),
+        repeating-linear-gradient(-45deg, #0000 0 2px, #00000008 0 4px),
+        #7a7;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) rotate3d(1,0,0,60deg) rotate3d(0,0,1,-30deg) translate3d(0px, 100px, -100px);
+      box-shadow: 
+        0 0 0 20vmax #7a7;
+      animation: spin 20s -13s linear infinite;
+    }
+    
+    .tower-base {
+      --w: 79px;
+      --d: 79px;
+      --h: 20px;
+      --c: #e0e0e0;
+      top: 50%;
+      left: 50%;
+      translate: -50% -50%;
+    }
+    .tower {
+      --w: 75px;
+      --d: 75px;
+      --h: 250px;
+      --b:
+        linear-gradient(to bottom right, #0000 50%, #0002),
+        linear-gradient(#222 0 0) 95% 100% / 8px 50% no-repeat,;
+      top: 50%;
+      left: 50%;
+      translate: -50% -50%;
+      
+      &::before,
+      > div::before {
+        box-shadow: inset 0 0 0 100vmax #2201;
+      }
+    
+      &::after,
+      > div::after {
+        box-shadow: inset 0 0 0 100vmax #22220018;
+        --b: 
+          linear-gradient(to bottom left, #0000 50%, #0002),
+          linear-gradient(#222 0 0) 5% 100% / 8px 50% no-repeat,;
+      }
+    }
+    
+    .cubicle {
+      --wc: 262.5px;
+      --hc: 337.5px;
+      width: var(--wc);
+      height: var(--hc);
+    
+      &:nth-child(2) {
+        transform-origin: 0 100%;
+        rotate: -90deg;
+        bottom: 0;
+        left: var(--hc);
+      }
+    
+      &:nth-child(3) {
+        bottom: var(--hc);
+        left: 100%;
+        transform-origin: 0 100%;
+        rotate: 179.99deg;
+        transform-style: preserve-3d;
+      }
+    
+      &:nth-child(4) {
+        bottom: 100%;
+        left: var(--wc);
+        transform-origin: 0% 100%;
+        rotate: 90deg;
+      }
+    
+      .desk-board {
+        --w: var(--wc);
+        --h: 12px;
+        --d: 135px;
+        --c: #f4f9f5;
+        bottom: 10px;
+        transform: translate3d(0, 0, 160px);
+    
+        > div {
+          background: 
+            radial-gradient(circle at 72% 80%, #000 6px, #0000 7px),
+            radial-gradient(at 60% 55%, #0003, #22110008, #0000 50%),
+            var(--c);
+        }
+    
+        > div {
+          &::before, &::after {
+            box-shadow: inset 0 0 0 100vmax #00000028;
+          }
+        }
+      }
+      
+      .mat {
+        width: 45%;
+        height: 40%;
+        background: 
+          radial-gradient(at 20% 20%, #fff2, #0000 80%),
+          #28524d;
+        border-radius: 20px;
+        right: 10%;
+        top: 25%;
+        
+        &::before {
+          content: "";
+          width: 60%;
+          height: 40%;
+          border-radius: 50%;
+          background: #28524d;
+          top: 80%;
+          left: 50%;
+          translate: -50%;
+          mask: linear-gradient(#0000, #000 50%);
+        }
+      }
+    
+      .keyboard {
+        --w: 99px;
+        --h: 12px;
+        --d: 35px;
+        bottom: 100px;
+        left: 42%;
+        transform: translate3d(0, 0, 170px);
+    
+        &::after { height: 7px; }
+        &::before { height: 9px; }
+    
+        > div {
+          background: 
+            radial-gradient(circle at 15% 50%, #333 2%, #000 6%, #0000 0),
+            repeating-linear-gradient(#0000 0 4px, #486991 0 5px),
+            repeating-linear-gradient(90deg, #0000 0 4px, #486991 0 5px),
+            linear-gradient(#42a8cf 0 0) 80% 50% / 50% 60% no-repeat,
+            #486991;
+          box-shadow: inset 0 0 0 1.5px #fff;
+          transform-origin: 50% 0%;
+          transform: translate3d(0, 0, calc(var(--h) - 5px)) rotate3d(1, 0, 0, 5deg);
+    
+          &::before, &::after {
+            background: #ddd;
+          }
+        }
+      }
+    
+      .computer {
+        width: 90px;
+        height: 64px;
+        bottom: 37px;
+        left: 42%;
+        transform: translate3d(0, 0, 185px);
+        
+        .screen-glass {
+          width: 90px;
+          height: 50px;
+          background: red;
+          translate: 0 -48px;
+          transform-origin: 50% 100%;
+          transform: rotate3d(1,0,0,-90deg);
+          box-shadow: inset 0 0 4px 4px #000;
+          background:
+            radial-gradient(circle at 55% 40%, #fff4, #fff0  20%),
+              radial-gradient(circle at 65% 10%, #0005 2px, #0000 0),
+              radial-gradient(circle at 25% 85%, #0005 2px, #0000 0),
+              linear-gradient(#0d4363 8px, #0000 0 calc(100% - 10px), #0d4363 0),
+              linear-gradient(90deg, #0d4363 40%, #0000 0 calc(100% - 8px), #0d4363 0),
+              linear-gradient(#0003, #0000, #0003),
+              linear-gradient(90deg, #0003 40%, #0000, #0003),
+              radial-gradient(closest-corner at 65% 50%, #0000 40%, #0003),
+              #89b8cf
+              ;
+        }
+    
+        .bottom {
+          --w: 20px;
+          --h: 10px;
+          --d: 20px;
+          --c: #ccc;
+          top: 55%;
+          left: 50%;
+          transform:  translate(-50%,-50%) translate3d(0, 0, -20px);
+    
+          & + & {
+            transform: rotate(45deg) translate(-50%,-50%) translate3d(0, 0, -30px);
+          }
+        }
+    
+        .bar {
+          --w: 95px;
+          --h: 6px;
+          --d: 6px;
+          --c: #0d4363;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%) translate3d(0, 0, 22px);
+        }
+        .base {
+          --w: 96px;
+          --h: 2px;
+          --d: 32px;
+          --c: #ddd;
+          left: 50%;
+          top: 19px;
+          transform: translate(-50%) translate3d(0, 0, -11px);
+        }
+    
+        .side {
+          --w: 2px;
+          --d: 20px;
+          --h: 40px;
+          --c: #fff;
+          top: 50%;
+          transform: translate(-6px, -30%) translate3d(0, 0, -10px);
+    
+          > div::before {
+            background: 
+              radial-gradient(closest-side circle at 50% 20%, #2d6383, #0d4363 calc(100% - 1px), #0000), #fff;
+          }
+    
+          & + & {
+            transform: translate(92px, -30%) translate3d(0, 0, -5px);
+    
+            > div::after {
+              background: 
+                radial-gradient(closest-side circle at 50% 20%, #2d6383, #0d4363 calc(100% - 1px), #0000), #fff;
+            }
+          }
+        }
+    
+        .screen {
+          --w: 90px;
+          --h: 50px;
+          --d: 9px;
+    
+          &::after {
+            background:
+              radial-gradient(circle at 65% 10%, #0005 2px, #0000 0),
+              radial-gradient(circle at 25% 85%, #0005 2px, #0000 0),
+              linear-gradient(#0d4363 8px, #0000 0 calc(100% - 10px), #0d4363 0),
+              linear-gradient(90deg, #0d4363 40%, #0000 0 calc(100% - 8px), #0d4363 0),
+              linear-gradient(#0003, #0000, #0003),
+              linear-gradient(90deg, #0003 40%, #0000, #0003),
+              radial-gradient(closest-corner at 65% 50%, #0000 40%, #0003),
+              #89b8cf
+              ;
+            box-shadow:
+              inset 0 0 0 2px #fff,
+              inset 0 0 10px #0008 
+              ;
+          }
+    
+          > div::before,
+            > div::after {
+              background: 
+                linear-gradient(#f2f2f2 50%, #aaa 0 calc(50% + 1px), #f2f2f2 0), #eee;
+          }
+        }
+    
+        .monitor {
+          width: 100%;
+          height: calc(100% - 9px);
+          bottom: 0;
+          transform: rotate3d(1,0,0,-5deg);
+    
+          .back {
+            width: 100%;
+            height: 100%;
+            background: #f005;
+            transform-origin: 50% 100%;
+            transform: rotate3d(1, 0, 0, -90deg) translate3d(0, 0, -1px);
+            clip-path: polygon(7% 16%, 93% 16%, 93% 95%, 7% 95%);
+            background: 
+              repeating-linear-gradient(90deg, #0000 0 2px, #0004 0 4px) 40% 80% / 50% 30% no-repeat,
+              linear-gradient(#0001, #0003), 
+              #eee;
+          }
+    
+          .verticals {
+            width: 100%;
+            height: 100%;
+    
+            &::before,
+            &::after {
+              content: "";
+              width: 100%;
+              height: 100%;
+              background:
+                #a6aaad;
+              transform-origin: 50% 0;
+              transform: rotate3d(1, 0, 0, 4deg);
+              clip-path: polygon(0 0, 100% 0, 93% 100%, 7% 100%);
+            }
+    
+            &::after {
+              background: 
+                linear-gradient(#fff 30%, #0000 0 50%, #fff 0 70%, #0000 0 90%, #fff 0),
+                linear-gradient(90deg, #fff 15%, #0000 0 40%, #fff 0 60%, #0000 0 85%, #fff 0),
+                repeating-linear-gradient(90deg, #fff 0 2.5px, #aaa 0 5px),
+                #fff;
+              transform: translate3d(0, 0, 50px) rotate3d(1, 0, 0, -4deg);
+            }
+          }
+    
+          .horizontals {
+            width: 50px;
+            height: 55px;
+            transform-origin: 0 0;
+            transform: rotate3d(0,1,0,-90deg);
+    
+            &::before,
+            &::after {
+              content: "";
+              width: 100%;
+              height: 100%;
+              background: 
+                linear-gradient(#0000, #0004, #0000) 0% 40% / 60% 50% no-repeat,
+                linear-gradient(#0000000c 0 0),
+                linear-gradient(90deg, #fff 50%, #aaa 0 calc(50% + 1px), #fff 0);
+              transform-origin: 50% 0;
+              transform: rotate3d(1, 0, 0, -7deg);
+              clip-path: polygon(0 0, 100% 0, 93% 100%, 7% 100%);
+            }
+    
+            &::after {
+              transform: translate3d(0, 0, -90px) rotate3d(1, 0, 0, 7deg);
+            }
+          }
+        }
+      }
+    
+      .drawer-side {
+        --h: 90px;
+        --w: 9px;
+        --d: 134px;
+        bottom: 10px;
+        left: 2px;
+        transform: translate3d(0, 0, 71px);
+        background: linear-gradient(#0000 10px, var(--c) 0 calc(100% - 10px), #0000 0);
+    
+        & + & {
+          left: 97px;
+        }
+    
+        > div::after,
+          > div::before {
+            box-shadow: 
+              inset 0 0 0 100vmax #0001,
+              inset 0 5px 5px #0002,
+              inset 0 0 5px #ff01;
+        } 
+      }
+    
+      .drawer {
+        --h: 90px;
+        --w: 86px;
+        --d: 135px;
+        bottom: 8px;
+        left: 11px;
+        transform: translate3d(0, 0, 72px);
+    
+        &::after {
+          background:
+            linear-gradient(90deg, #0002, #0000 5% 95%, #0002),
+            linear-gradient(var(--c) 35%, #000 0 36%, var(--c) 0);
+          box-shadow: 
+            inset 0 5px 5px #0002,
+            inset 0 0 20px #0001;
+        }
+      }
+    
+      .holder {
+        --w: 6px;
+        --h: 50px;
+        --d: 50px;
+        --c: #c3f1f4;
+        bottom: 6px;
+        left: 18px;
+        transform: translate3d(0, 0, 68px);
+      }
+    
+      .panel {
+        --w: var(--wc);
+        --h: 185px;
+        --d: 10px;
+        bottom: 0;
+        transform: translate3d(0, 0, 80px);
+    
+        &::before, &::after {
+          background: #143;
+          box-shadow: inset 0 0 0 3px #eee;
+        }
+    
+        > div {
+          &::before, &::after {
+            box-shadow: inset 0 0 0 100vmax #0003;
+          }
+        }
+      }
+    }
+    
+    /* details */
+    .kleenex {
+      --w: 50px;
+      --h: 20px;
+      --d: 30px;
+      --c: #88d1e1;
+      transform: rotate(20deg) translate3d(0,0,168px);
+      bottom: 50px;
+      left: 20px;
+      
+      > div {
+        background: 
+          radial-gradient(farthest-side, #0000 60%, var(--c) 0),
+          linear-gradient(#0000 48%, #0003 0 52%, #0000 0)
+          #eeeb;
+        
+        > div {
+          width: 50%;
+          height: 90%;
+          background: #fff;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%) rotate3d(1,0,0,60deg);
+          clip-path: polygon(0 0, 40% 5%, 100% 0, 90% 50%, 100% 100%, 0 100%, 15% 50%);
+        }
+      }
+    }
+    
+    .cubicle:nth-child(2) {
+      .panel {
+        &:after {
+          background: 
+            repeating-linear-gradient(#0000 0 2px,#000 0 3.5px) 30.5% 25% / 15px 15px no-repeat,
+            radial-gradient(circle at 32% 20%, #800 2px, #0000 0),
+            linear-gradient(#fff 0 0) 30% 20% / 20px 28px no-repeat,
+            #143;
+        }
+      }
+    }
+    
+    .pencil-box {
+      --w: 15px;
+      --d: 15px;
+      --h: 22px;
+      --c: #c3cbca;
+      
+      left: 90%;
+      bottom: 40px;
+      transform: translate3d(0,0,172px);
+      
+      > div { background: #0000; }
+    }
+    
+    .pencil {
+      --w: 2px;
+      --d: 2px;
+      --h: 30px;
+      --c: #fd5;
+      left: 92%;
+      bottom: 43px;
+      transform: translate3d(0,0,172px) rotate3d(0,1,0,-5deg);
+      
+      > div { background: #000; }
+    }
+    
+    .cubicle:nth-child(3) {
+      .computer { 
+        left: 40%; 
+        .monitor {
+          transform: rotate3d(1,0,0,-10deg);
+        }
+      }
+    }
+    
+    /* overcomlpicated selector and code to handle spinning */
+    body:has(input:not(:checked)) * {
+      animation-play-state: paused;
+    }
+    
+    label {
+      font-family: Arial, sans-serif;
+      z-index: 1;
+      * { position: relative; }
+      position: fixed;
+      top: 12px; left: 12px;
+      color: #fff;
+      user-select: none;
+    }
+    
+  </style>
+</head>
+<body>
+  <label><input type="checkbox" checked> Animate</label>
+  <article>
+    <div class="cubicle">
+      <div class="mat"></div>
+      <div class="cube kleenex"><div><div></div></div></div>
+      <div class="cube panel"><div></div></div>
+      <div class="cube desk-board"><div></div></div>
+      <div class="cube drawer-side"><div></div></div>
+      <div class="cube drawer-side"><div></div></div>
+      <div class="cube drawer"><div></div></div>
+      <div class="cube holder"><div></div></div>
+      <div class="cube keyboard"><div></div></div>
+      <div class="computer">
+        <div class="cube bar"><div></div></div>
+        <div class="cube base"><div></div></div>
+        <div class="cube bottom"><div></div></div>
+        <div class="cube bottom"><div></div></div>
+        <div class="cube side"><div></div></div>
+        <div class="cube side"><div></div></div>
+        <div class="monitor">
+          <div class="screen-glass"></div>
+          <div class="cube screen"><div></div></div>
+          <div class="verticals"></div>
+          <div class="horizontals"></div>
+          <div class="back"></div>
+        </div>
+      </div>
+    </div>
+    <div class="cubicle">
+      <div class="mat"></div>
+      <div class="cube panel"><div></div></div>
+      <div class="cube desk-board"><div></div></div>
+      <div class="cube drawer-side"><div></div></div>
+      <div class="cube drawer-side"><div></div></div>
+      <div class="cube drawer"><div></div></div>
+      <div class="cube holder"><div></div></div>
+      <div class="cube keyboard"><div></div></div>
+      <div class="computer">
+        <div class="cube bar"><div></div></div>
+        <div class="cube base"><div></div></div>
+        <div class="cube bottom"><div></div></div>
+        <div class="cube bottom"><div></div></div>
+        <div class="cube side"><div></div></div>
+        <div class="cube side"><div></div></div>
+        <div class="monitor">
+          <div class="screen-glass"></div>
+          <div class="cube screen"><div></div></div>
+          <div class="verticals"></div>
+          <div class="horizontals"></div>
+          <div class="back"></div>
+        </div>
+      </div>
+    </div>
+    <div class="cubicle">
+      <div class="cube pencil-box"><div></div></div>
+      <div class="cube pencil"><div></div></div>
+      <div class="mat"></div>
+      <div class="cube panel"><div></div></div>
+      <div class="cube desk-board"><div></div></div>
+      <div class="cube drawer-side"><div></div></div>
+      <div class="cube drawer-side"><div></div></div>
+      <div class="cube drawer"><div></div></div>
+      <div class="cube holder"><div></div></div>
+      <div class="cube keyboard"><div></div></div>
+      <div class="computer">
+        <div class="cube bar"><div></div></div>
+        <div class="cube base"><div></div></div>
+        <div class="cube bottom"><div></div></div>
+        <div class="cube bottom"><div></div></div>
+        <div class="cube side"><div></div></div>
+        <div class="cube side"><div></div></div>
+        <div class="monitor">
+          <div class="screen-glass"></div>
+          <div class="cube screen"><div></div></div>
+          <div class="verticals"></div>
+          <div class="horizontals"></div>
+          <div class="back"></div>
+        </div>
+      </div>
+    </div>
+    <div class="cubicle">
+      <div class="mat"></div>
+      <div class="cube panel"><div></div></div>
+      <div class="cube desk-board"><div></div></div>
+      <div class="cube drawer-side"><div></div></div>
+      <div class="cube drawer-side"><div></div></div>
+      <div class="cube drawer"><div></div></div>
+      <div class="cube holder"><div></div></div>
+      <div class="cube keyboard"><div></div></div>
+      <div class="computer">
+        <div class="cube bar"><div></div></div>
+        <div class="cube base"><div></div></div>
+        <div class="cube bottom"><div></div></div>
+        <div class="cube bottom"><div></div></div>
+        <div class="cube side"><div></div></div>
+        <div class="cube side"><div></div></div>
+        <div class="monitor">
+          <div class="screen-glass"></div>
+          <div class="cube screen"><div></div></div>
+          <div class="verticals"></div>
+          <div class="horizontals"></div>
+          <div class="back"></div>
+        </div>
+      </div>
+    </div>
+    <div class="cube tower"><div></div></div>
+    <div class="cube tower-base"><div></div></div>
+  </article>
+</body>
+</html>
