@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8'>
+    <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+    <title>Page Title</title>
+    <meta name='viewport' content='width=device-width, initial-scale=1'>
+    <script src="vertical-transpose.js"></script>
+    <script>
+      // 페이지 onload 시점 등 원하는 곳에서 실행
+      var VT = initVerticalTranspose();
+    
+      // 1) WebSquare DS와 Grid를 연결
+      VT.wireDatasetToVerticalGrid({
+        dsId: "dsReport",
+        gridId: "gridV",
+        vdsId: "vds_vertical",
+        fields: ["수입액","지출액","잔액"],  // 행 순서
+        keyField: "구분",
+        colWidth: 140
+      });
+    
+      // 2) WebSquare 없는 환경에서 테스트
+      var rows = [
+        { 구분:"일계", 수입액:100, 지출액:50, 잔액:50 },
+        { 구분:"누계", 수입액:300, 지출액:150, 잔액:150 }
+      ];
+      var t = VT.transpose(rows, ["수입액","지출액","잔액"]);
+      console.log(t);
+    </script>
+</head>
+<body>
+    <div id="gridV">그리드</div>
+</body>
+</html>

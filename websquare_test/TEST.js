@@ -40,6 +40,3 @@ loadScript('ICH030319M01_TEST.js', function(){
     scsObj.btn_Search_onclick(); // 조회버튼 클릭 이벤트 테스트
     scsObj.btn_Print_onclick();  // 인쇄버튼 클릭 이벤트 테스트
 });
-
-
-Uncaught SyntaxError: Identifier 'verticalReport' has already been declared
