@@ -1,0 +1,1872 @@
+SELECT X.GUNGU_CODE
+     , Y.REF_D_NM GUNGU_NAME
+     , NVL(SUM(X.AMT1),0) AMT1
+     , NVL(SUM(X.AMT2),0) AMT2
+     , (NVL(SUM(X.AMT1),0)+NVL(SUM(X.AMT2),0)) TOT_AMT
+     , '20250701' AMT1_FROMDT
+     , '20250731' AMT1_TODT
+     , '20250801' AMT2_FROMDT
+     , '20250901' AMT2_TODT
+     , '20250915' SIHAENGIL
+  FROM (SELECT CASE WHEN GUNGU_CODE > 0 AND GUNGU_CODE < 7000 THEN GUNGU_CODE + 7000
+                    WHEN GUNGU_CODE IN (0, 7000, 7100, 7040, 7810, 7055, 7830, 7840, 7850) THEN 7100
+                    ELSE GUNGU_CODE
+                END GUNGU_CODE
+             , CASE WHEN SUNAPIL >= '20250701' AND SUNAPIL <= '20250731' AND GEORAE_GUBUN = 3 THEN A.BONSE_AMT  * -1
+                    WHEN SUNAPIL >= '20250701' AND SUNAPIL <= '20250731' AND GEORAE_GUBUN <> 3 THEN BONSE_AMT
+                    ELSE 0
+                END AMT1
+             , CASE WHEN SUNAPIL >= '20250801' AND SUNAPIL <= '20250901' AND GEORAE_GUBUN = 3 THEN A.BONSE_AMT  * -1
+                    WHEN SUNAPIL >= '20250801' AND SUNAPIL <= '20250901' AND GEORAE_GUBUN <> 3 THEN BONSE_AMT
+                    ELSE 0
+                END AMT2
+          FROM RPT_SUNAP_JIBGYE A
+         WHERE A.GEUMGO_CODE = '28'
+           AND A.SUNAPIL BETWEEN '20250701' AND '20250901'
+           AND A.JIBGYE_CODE = 209333
+           AND A.YEAR_GUBUN  =  1
+               UNION ALL
+        SELECT CASE WHEN GUNGU_CODE > 0 AND GUNGU_CODE < 7000 THEN GUNGU_CODE + 7000
+                    WHEN GUNGU_CODE IN (0, 7000, 7100, 7040, 7810, 7055, 7830, 7840, 7850) THEN 7100
+                    ELSE GUNGU_CODE
+                END GUNGU_CODE
+             , CASE WHEN SUNAPIL >= '20250701' AND SUNAPIL <= '20250731' AND IPJI_GUBUN = 1 THEN A.JIBANGSE_AMT
+                    WHEN SUNAPIL >= '20250701' AND SUNAPIL <= '20250731' AND IPJI_GUBUN = 2 THEN A.JIBANGSE_AMT * -1
+                    ELSE 0
+                END AMT1
+             , CASE WHEN SUNAPIL >= '20250801' AND SUNAPIL <= '20250901' AND IPJI_GUBUN = 1 THEN A.JIBANGSE_AMT
+                    WHEN SUNAPIL >  '20250801' AND SUNAPIL <= '20250901' AND IPJI_GUBUN = 2 THEN A.JIBANGSE_AMT * -1
+                    ELSE 0
+                END AMT2
+          FROM RPT_DANGSEIPJOJEONG A
+         WHERE A.GEUMGO_CODE = '28'
+           AND A.SUNAPIL BETWEEN '20250701' AND '20250901'
+           AND A.JIBGYE_CODE = 209333
+           AND A.YEAR_GUBUN  =  1
+       )X
+     , RPT_CODE_INFO Y
+ WHERE X.GUNGU_CODE = Y.REF_D_C
+   AND Y.REF_L_C = 500
+   AND Y.REF_M_C = '28'
+   AND Y.REF_S_C= 5
+       GROUP BY X.GUNGU_CODE, Y.REF_D_NM, Y.REF_CTNT1
+       ORDER BY Y.REF_CTNT1
+
+----------------------------------
+
+select A.* 
+FROM RPT_SUNAP_JIBGYE A
+         WHERE A.GEUMGO_CODE = '28'
+           AND A.SUNAPIL BETWEEN '20250701' AND '20250901'
+           AND A.JIBGYE_CODE = 209333
+           AND A.YEAR_GUBUN  =  1       
+
+
+-------------------------------------
+
+select 
+*
+from acl_sigumgo_slv
+where trxdt BETWEEN '20250101' and '20250930'
+and fil_100_ctnt5 = '02800090100000099'
+and sigumgo_trx_g = 11
+and sigumgo_ip_trx_g = 11
+
+=========================== XDA ID:[tom.ich.rpt.xda.xSelectListICH030506By01]===============================
+SELECT
+ A.GUBUN_SORT_SNO
+ ,  A.GUBUN_CD
+ ,  A.GUBUN_NAME
+ ,  A.GROUP_NAME
+ ,  A.GYEJWA_NM
+ ,CASE 
+        WHEN A.GUBUN_CD = 0 THEN '합계'
+  WHEN A.GUBUN_CD = 1 THEN A.GUBUN_NAME 
+  WHEN A.GUBUN_CD = 2 THEN A.GROUP_NAME 
+  WHEN A.GUBUN_CD = 3 THEN A.GYEJWA_NM 
+   ELSE A.GYEJWA_NM END AS GUBUN_NM  
+ ,  A.GYEJWA_CNT
+ ,  A.SEIP_SUM
+ ,  A.SECHUL_SUM
+ ,  A.SEIP_SECHUL_JAN
+FROM 
+(
+WITH PARAM_DATA AS (
+    SELECT
+        '28' AS GEUMGO_CD
+      , '0' AS GUNGU_CD
+      , NVL('', 'all') AS HOIKYE_C
+      , '2024' AS HOIKYE_YEAR
+      , '20251021' AS KEORAEIL
+    FROM DUAL
+    )
+  , GUBUN_ORDATA AS (
+    SELECT
+        ROWNUM AS RN,
+        GUBUN_NAME,
+        GEUMGO_CD,
+        GUNGU_CD,
+        SORT_SNO
+        FROM 
+        (
+        SELECT
+  A.GUBUN_NAME,
+  A.GEUMGO_CD,
+  A.GUNGU_CD,
+  A.SORT_SNO
+ FROM (
+ SELECT 
+            A.HRNK_CMM_C_NM AS GUBUN_NAME,
+            A.UPMU_HMK_1_SLV AS GEUMGO_CD,
+            A.UPMU_HMK_2_SLV AS GUNGU_CD,
+            MIN(A.SORT_SNO) AS SORT_SNO
+        FROM SFI_CMM_C_DAT A,
+        PARAM_DATA B
+        WHERE A.CMM_C_NM = '금고운용현황회계구분'
+        AND A.USE_YN = 'Y'
+        AND A.UPMU_HMK_1_SLV = B.GEUMGO_CD
+        AND A.UPMU_HMK_2_SLV = B.GUNGU_CD
+        GROUP BY A.HRNK_CMM_C_NM,
+            A.UPMU_HMK_1_SLV,
+            A.UPMU_HMK_2_SLV
+ ) A
+ ORDER BY A.SORT_SNO
+        ) A
+  )  
+  , GYEJWA AS (
+    SELECT
+      A.FIL_100_CTNT2 AS ACNO
+      , A.SIGUMGO_AC_B AS ACB
+      , A.SIGUMGO_AGE_AC_G AS AGE
+      , A.SIGUMGO_AC_G AS ACG
+      , A.SIGUMGO_AC_NM AS GYEJWA_NM
+    FROM ACL_SIGUMGO_MAS A,
+    PARAM_DATA B
+    WHERE 1=1
+    AND A.MNG_NO = 1
+    AND A.SIGUMGO_AGE_AC_G IN (0, 1)
+    AND A.SIGUMGO_ORG_C = B.GEUMGO_CD
+    AND A.FIL_100_CTNT2 IN (
+         SELECT 
+          CASE WHEN SUBSTR(CMM_DTL_C_NM, 16, 2) = 'YY' THEN SUBSTR(CMM_DTL_C_NM, 1, 15) || SUBSTR( B.HOIKYE_YEAR, 3, 2) 
+          ELSE CMM_DTL_C_NM 
+          END  AS GONGGEUM_GYEJWA
+        FROM SFI_CMM_C_DAT
+        WHERE CMM_C_NM = 'RPT세입세출일계표계좌'
+        AND USE_YN = 'Y'
+        AND HRNK_CMM_DTL_C = B.GEUMGO_CD
+        AND (
+          'all' = B.GUNGU_CD
+          OR
+          UPMU_HMK_1_SLV = B.GUNGU_CD
+        )
+        -- 회계 전체조건 추가
+        AND (
+          'all' = B.HOIKYE_C
+          OR
+          UPMU_HMK_2_SLV = B.HOIKYE_C
+        )
+       )
+  )
+  , DANGSEIPJOJEONG AS (
+ SELECT
+        A.KEORAEIL AS TRXDT
+        , A.KEORAEIL AS GISDT
+        , (
+  SELECT 
+      (CASE WHEN SUBSTR(NVL(B.UPMU_HMK_3_SLV, '00000000000000000'), 16, 2) = '99' THEN NVL(B.UPMU_HMK_3_SLV, '00000000000000000')
+   ELSE SUBSTR(NVL(B.UPMU_HMK_3_SLV, '00000000000000000'), 1, 15) || SUBSTR(NVL(C.HOIKYE_YEAR , '0000'), 3, 2) 
+   END)
+   AS ACNO
+  FROM SFI_CMM_C_DAT B
+  WHERE B.CMM_C_NM = 'RPT세입조정계좌매핑'
+  AND B.USE_YN = 'Y'
+  AND B.HRNK_CMM_DTL_C = A.GEUMGO_CODE
+  AND B.UPMU_HMK_1_SLV = A.JIBGYE_CODE
+  AND B.UPMU_HMK_2_SLV = A.GUNGU_CODE
+  AND ROWNUM = 1
+ ) AS ACNO
+        , 'SJ' AS G
+        , CASE WHEN A.IPJI_GUBUN = 1 THEN '249999' ELSE '649999' END AS GG
+        , DECODE(A.IPJI_GUBUN, 2, -1, 1) * (A.GYOYUKSE_AMT + A.NONGTEUKSE_AMT + A.JIBANGSE_AMT + A.SEWOI_AMT) AS AMT
+      FROM RPT_DANGSEIPJOJEONG A,
+    PARAM_DATA C
+      WHERE A.SUNAPIL BETWEEN  C.HOIKYE_YEAR || '0101' AND C.KEORAEIL
+ AND A.GEUMGO_CODE = C.GEUMGO_CD
+        AND A.JOJEONG_GUBUN = 2
+  )
+  , SLV AS (
+    -- YY계좌 공금거래
+    SELECT
+        A.TRXDT
+        , A.GISDT
+        , A.FIL_100_CTNT5 AS ACNO
+        , (SELECT GYEJWA_NM FROM GYEJWA WHERE ACNO = A.FIL_100_CTNT5) AS GYEJWA_NM
+        , (SELECT ACB FROM GYEJWA WHERE ACNO = A.FIL_100_CTNT5) AS ACB
+        , (SELECT AGE FROM GYEJWA WHERE ACNO = A.FIL_100_CTNT5) AS AGE
+        , 'JG' AS G
+        , LPAD(A.SIGUMGO_TRX_G, 2, '0') || LPAD(A.SIGUMGO_IP_TRX_G, 2, '0') || LPAD(A.SIGUMGO_JI_TRX_G, 2, '0') AS GG
+        , SUM( DECODE(A.CRT_CAN_G, 1, -1, 2, -1, 33, -1, 1) * DECODE(A.IPJI_G, 2, -1, 1) * A.TRAMT ) AS AMT
+      FROM ACL_SIGUMGO_SLV A,
+      PARAM_DATA B
+      WHERE A.FIL_100_CTNT5 IN (SELECT ACNO FROM GYEJWA)
+      AND A.GISDT >=  B.HOIKYE_YEAR || '0101'
+      AND A.SIGUMGO_HOIKYE_YR <> 9999
+      GROUP BY A.TRXDT, A.GISDT, A.FIL_100_CTNT5, LPAD(A.SIGUMGO_TRX_G, 2, '0') || LPAD(A.SIGUMGO_IP_TRX_G, 2, '0') || LPAD(A.SIGUMGO_JI_TRX_G, 2, '0')
+
+      UNION ALL
+
+      -- 99계좌 공금거래 / 기준일, 기산일 당년도분
+
+    SELECT
+        A.TRXDT
+        , A.GISDT
+        , A.FIL_100_CTNT5 AS ACNO
+        , (SELECT GYEJWA_NM FROM GYEJWA WHERE ACNO = A.FIL_100_CTNT5) AS GYEJWA_NM
+        , (SELECT ACB FROM GYEJWA WHERE ACNO = A.FIL_100_CTNT5) AS ACB
+        , (SELECT AGE FROM GYEJWA WHERE ACNO = A.FIL_100_CTNT5) AS AGE
+        , 'JG' AS G
+        , LPAD(A.SIGUMGO_TRX_G, 2, '0') || LPAD(A.SIGUMGO_IP_TRX_G, 2, '0') || LPAD(A.SIGUMGO_JI_TRX_G, 2, '0') AS GG
+        , SUM( DECODE(A.CRT_CAN_G, 1, -1, 2, -1, 33, -1, 1) * DECODE(A.IPJI_G, 2, -1, 1) * A.TRAMT ) AS AMT
+      FROM ACL_SIGUMGO_SLV A,
+      PARAM_DATA B
+      WHERE A.FIL_100_CTNT5 IN (SELECT ACNO FROM GYEJWA)
+      AND A.GJDT >=  B.HOIKYE_YEAR || '0101'
+      AND A.GJDT <= (CASE WHEN B.KEORAEIL > B.HOIKYE_YEAR || '1231' THEN B.HOIKYE_YEAR || '1231' ELSE B.KEORAEIL END)
+      AND A.GISDT >= B.HOIKYE_YEAR || '0101'
+      AND A.SIGUMGO_HOIKYE_YR = 9999
+      GROUP BY A.TRXDT, A.GISDT, A.FIL_100_CTNT5, LPAD(A.SIGUMGO_TRX_G, 2, '0') || LPAD(A.SIGUMGO_IP_TRX_G, 2, '0') || LPAD(A.SIGUMGO_JI_TRX_G, 2, '0')
+
+      UNION ALL
+
+      -- 99계좌 공금거래 / 기준일 전년도, 기산일 당년도분 - 일별로 세입처리 (110199)
+      SELECT
+        A.TRXDT
+        , A.GISDT
+        , A.FIL_100_CTNT5 AS ACNO
+        , (SELECT GYEJWA_NM FROM GYEJWA WHERE ACNO = A.FIL_100_CTNT5) AS GYEJWA_NM
+        , (SELECT ACB FROM GYEJWA WHERE ACNO = A.FIL_100_CTNT5) AS ACB
+        , (SELECT AGE FROM GYEJWA WHERE ACNO = A.FIL_100_CTNT5) AS AGE
+        , 'JG' AS G
+        , '110199' AS GG
+        , SUM( DECODE(A.CRT_CAN_G, 1, -1, 2, -1, 33, -1, 1) * DECODE(A.IPJI_G, 2, -1, 1) * A.TRAMT ) AS AMT
+      FROM ACL_SIGUMGO_SLV A,
+      PARAM_DATA B
+      WHERE A.FIL_100_CTNT5 IN (SELECT ACNO FROM GYEJWA)
+      AND A.GJDT < B.HOIKYE_YEAR || '0101'
+      AND A.GISDT >= B.HOIKYE_YEAR || '0101'
+      AND A.SIGUMGO_HOIKYE_YR = 9999
+      GROUP BY A.TRXDT, A.GISDT, A.FIL_100_CTNT5
+
+      UNION ALL
+
+      -- 99계좌 공금거래 / 기준일 당년도, 기산일 익년도분 - 일별로 가이월지급처리 (629904)
+      SELECT
+        A.TRXDT
+        , A.GISDT
+        , A.FIL_100_CTNT5 AS ACNO
+        , (SELECT GYEJWA_NM FROM GYEJWA WHERE ACNO = A.FIL_100_CTNT5) AS GYEJWA_NM
+        , (SELECT ACB FROM GYEJWA WHERE ACNO = A.FIL_100_CTNT5) AS ACB
+        , (SELECT AGE FROM GYEJWA WHERE ACNO = A.FIL_100_CTNT5) AS AGE
+        , 'JG' AS G
+        , '629904' AS GG
+        , SUM( DECODE(A.CRT_CAN_G, 1, -1, 2, -1, 33, -1, 1) * DECODE(A.IPJI_G, 2, -1, 1) * A.TRAMT ) * -1 AS AMT
+      FROM ACL_SIGUMGO_SLV A,
+      PARAM_DATA B
+      WHERE A.FIL_100_CTNT5 IN (SELECT ACNO FROM GYEJWA)
+      AND A.GJDT >=  B.HOIKYE_YEAR || '0101'
+      AND A.GJDT <= (CASE WHEN B.KEORAEIL > B.HOIKYE_YEAR || '1231' THEN B.HOIKYE_YEAR || '1231' ELSE B.KEORAEIL END)
+      AND A.GISDT > B.HOIKYE_YEAR || '1231'
+      AND A.SIGUMGO_HOIKYE_YR = 9999
+      GROUP BY A.TRXDT, A.GISDT, A.FIL_100_CTNT5
+      
+      UNION ALL
+
+      -- 한도거래
+      SELECT
+        A.TRXDT
+        , A.GISDT
+        , A.SIGUMGO_ACNO AS ACNO
+        , (SELECT GYEJWA_NM FROM GYEJWA WHERE ACNO = A.SIGUMGO_ACNO) AS GYEJWA_NM
+        , (SELECT ACB FROM GYEJWA WHERE ACNO = A.SIGUMGO_ACNO) AS ACB
+        , (SELECT AGE FROM GYEJWA WHERE ACNO = A.SIGUMGO_ACNO) AS AGE
+        , 'HD' AS G
+        , TO_CHAR(A.SIGUMGO_TRX_G) AS GG
+        , SUM( DECODE(A.CRT_CAN_G, 1, -1, 2, -1, 33, -1, 1) * DECODE(A.IPJI_G, 2, -1, 1) * A.TRAMT ) AS AMT
+      FROM ACL_SGGHANDO_SLV A,
+      PARAM_DATA B
+      WHERE A.SIGUMGO_ACNO IN (SELECT ACNO FROM GYEJWA)
+      AND A.TRXDT >=  B.HOIKYE_YEAR || '0101'
+      GROUP BY A.TRXDT, A.GISDT, A.SIGUMGO_ACNO, A.SIGUMGO_TRX_G
+
+      UNION ALL
+
+      SELECT
+        A.TRXDT
+        , A.GISDT
+        , A.ACNO
+        , B.GYEJWA_NM
+        , B.ACB 
+        , B.AGE
+        , A.G
+        , A.GG
+        , A.AMT
+      FROM DANGSEIPJOJEONG A, GYEJWA B
+      WHERE A.ACNO = B.ACNO
+
+      UNION ALL
+      
+      -- 운용잔액 / 전년자 말일금액을 익년 첫영업일자로 가져옴 (629903) - 지급거래형식으로, 마이너스 곱해줌
+      SELECT
+        TRXDT AS TRXDT
+        , TRXDT AS GISDT
+        , GONGGEUM_GYEJWA AS ACNO
+        , (SELECT GYEJWA_NM FROM GYEJWA WHERE ACNO = GONGGEUM_GYEJWA) AS GYEJWA_NM
+        , (SELECT ACB FROM GYEJWA WHERE ACNO = GONGGEUM_GYEJWA) AS ACB
+        , (SELECT AGE FROM GYEJWA WHERE ACNO = GONGGEUM_GYEJWA) AS AGE
+        , 'JG' AS G
+        , '629903' AS GG
+        , JANAEK * -1 AS AMT
+      FROM (
+        SELECT
+          (SELECT BIZ_DT
+          FROM MAP_JOB_DATE
+          WHERE DW_BAS_DDT = B.HOIKYE_YEAR || '0101') AS TRXDT
+          , CASE
+            WHEN SUBSTR(A.GONGGEUM_GYEJWA, 16, 2) <> 99 THEN SUBSTR(A.GONGGEUM_GYEJWA, 1, 15) || SUBSTR(B.HOIKYE_YEAR, 3, 2)
+            ELSE A.GONGGEUM_GYEJWA
+          END AS GONGGEUM_GYEJWA
+          , SUM(A.JANAEK) AS JANAEK
+        FROM RPT_UNYONG_JAN A,
+        RPT_UNYONG_GYEJWA C,
+        PARAM_DATA B
+        WHERE 1=1
+          AND A.GEUMGO_CODE = B.GEUMGO_CD
+          AND A.KIJUNIL = (SELECT
+                  CASE
+                    WHEN DT_G = 0 THEN BIZ_DT
+                    ELSE BF1_BIZ_DT
+                  END AS BIZ_DT
+                  FROM MAP_JOB_DATE
+                  WHERE DW_BAS_DDT = B.HOIKYE_YEAR - 1 || '1231')
+          AND A.JANAEK > 0
+          AND A.GEUMGO_CODE = C.GEUMGO_CODE
+          AND A.GONGGEUM_GYEJWA = C.GONGGEUM_GYEJWA
+          AND A.UNYONG_GYEJWA = C.UNYONG_GYEJWA
+          AND NVL(C.HJI_DT, '99999999') > (SELECT
+                  CASE
+                    WHEN DT_G = 0 THEN BIZ_DT
+                    ELSE BF1_BIZ_DT
+                  END AS BIZ_DT
+                  FROM MAP_JOB_DATE
+                  WHERE DW_BAS_DDT = B.HOIKYE_YEAR - 1 || '1231')
+        GROUP BY A.GONGGEUM_GYEJWA, B.HOIKYE_YEAR
+      )
+      WHERE GONGGEUM_GYEJWA IN (SELECT ACNO FROM GYEJWA)
+      UNION ALL
+
+      -- 운용잔액 / 당해 말일금액을 말일에 해지처리해줌 (120399)
+      SELECT
+        TRXDT AS TRXDT
+        , TRXDT AS GISDT
+        , GONGGEUM_GYEJWA AS ACNO
+        , (SELECT GYEJWA_NM FROM GYEJWA WHERE ACNO = GONGGEUM_GYEJWA) AS GYEJWA_NM
+        , (SELECT ACB FROM GYEJWA WHERE ACNO = GONGGEUM_GYEJWA) AS ACB
+        , (SELECT AGE FROM GYEJWA WHERE ACNO = GONGGEUM_GYEJWA) AS AGE
+        , 'JG' AS G
+        , '120399' AS GG
+        , JANAEK AS AMT
+      FROM (
+        SELECT
+          (SELECT BIZ_DT
+          FROM MAP_JOB_DATE
+          WHERE DW_BAS_DDT = B.HOIKYE_YEAR + 1 || '0101') AS TRXDT
+          , CASE
+            WHEN SUBSTR(A.GONGGEUM_GYEJWA, 16, 2) <> 99 THEN SUBSTR(A.GONGGEUM_GYEJWA, 1, 15) || SUBSTR(B.HOIKYE_YEAR, 3, 2)
+            ELSE A.GONGGEUM_GYEJWA
+          END AS GONGGEUM_GYEJWA
+          , SUM(A.JANAEK) AS JANAEK
+        FROM RPT_UNYONG_JAN A,
+        PARAM_DATA B
+        WHERE 1=1
+          AND A.KIJUNIL = (SELECT
+                  CASE
+                    WHEN DT_G = 0 THEN BIZ_DT
+                    ELSE BF1_BIZ_DT
+                  END AS BIZ_DT
+                  FROM MAP_JOB_DATE
+                  WHERE DW_BAS_DDT = B.HOIKYE_YEAR || '1231')
+          AND JANAEK > 0
+        GROUP BY A.GONGGEUM_GYEJWA, B.HOIKYE_YEAR
+      )
+      WHERE GONGGEUM_GYEJWA IN (SELECT ACNO FROM GYEJWA)
+      UNION ALL
+
+      -- 공금잔액 / 전년자 말일금액을 익년 첫영업일자로 가져옴 (99회계 대상, 110199)
+
+      SELECT
+        TRXDT AS TRXDT
+        , TRXDT AS GISDT
+        , GONGGEUM_GYEJWA AS ACNO
+              , (SELECT GYEJWA_NM FROM GYEJWA WHERE ACNO = GONGGEUM_GYEJWA) AS GYEJWA_NM
+              , (SELECT ACB FROM GYEJWA WHERE ACNO = GONGGEUM_GYEJWA) AS ACB
+              , (SELECT AGE FROM GYEJWA WHERE ACNO = GONGGEUM_GYEJWA) AS AGE
+        , 'JG' AS G
+        , '110199' AS GG
+        , JANAEK AS AMT
+      FROM (
+        SELECT /*+ HINT1 */
+          (SELECT BIZ_DT
+          FROM MAP_JOB_DATE
+          WHERE DW_BAS_DDT = B.HOIKYE_YEAR || '0101') AS TRXDT
+          ,A.GONGGEUM_GYEJWA
+          , A.JANAEK
+        FROM RPT_GONGGEUM_JAN A,
+        PARAM_DATA B
+        WHERE 1=1
+        AND A.KEORAEIL = B.HOIKYE_YEAR - 1 || '1231'
+        AND A.HOIGYE_YEAR = 9999
+        AND A.GONGGEUM_GYEJWA IN (SELECT ACNO FROM GYEJWA)
+      )
+
+      UNION ALL
+
+      -- 공금잔액 / 당해 말일금액을 말일에 가이월지급처리해줌 (99회계 대상, 629904)
+      SELECT
+        TRXDT AS TRXDT
+        , TRXDT AS GISDT
+        , GONGGEUM_GYEJWA AS ACNO
+              , (SELECT GYEJWA_NM FROM GYEJWA WHERE ACNO = GONGGEUM_GYEJWA) AS GYEJWA_NM
+              , (SELECT ACB FROM GYEJWA WHERE ACNO = GONGGEUM_GYEJWA) AS ACB
+              , (SELECT AGE FROM GYEJWA WHERE ACNO = GONGGEUM_GYEJWA) AS AGE
+        , 'JG' AS G
+        , '629904' AS GG
+        , JANAEK * -1 AS AMT
+      FROM (
+        SELECT /*+ HINT2 */
+          (SELECT BIZ_DT
+          FROM MAP_JOB_DATE
+          WHERE DW_BAS_DDT = B.HOIKYE_YEAR + 1 || '0101') AS TRXDT
+          ,A.GONGGEUM_GYEJWA
+          , A.JANAEK
+        FROM RPT_GONGGEUM_JAN A,
+        PARAM_DATA B
+        WHERE 1=1
+        AND A.KEORAEIL = B.HOIKYE_YEAR || '1231'
+        AND A.HOIGYE_YEAR = 9999
+        AND A.GONGGEUM_GYEJWA IN (SELECT ACNO FROM GYEJWA)
+      )
+
+  ),
+RESULT_DATA AS (
+SELECT
+  ACNO
+  , GYEJWA_NM  
+  , GUBUN_CMM_DTL_C
+  , GUBUN_NAME
+  , GROUP_CMM_DTL_C   
+  , GROUP_NAME
+  , GROUP_SORT_SNO
+  , SUM(세입_계) AS SEIP_SUM
+  , SUM(세출_계) AS SECHUL_SUM
+  , SUM(세입_계 - 세출_계) AS SEIP_SECHUL_JAN
+FROM (
+
+  SELECT
+    ACNO
+    , GYEJWA_NM  
+    , GUBUN_CMM_DTL_C
+    , GUBUN_NAME
+    , GROUP_CMM_DTL_C   
+    , GROUP_NAME
+    , GROUP_SORT_SNO
+    , 세입_일계 AS 세입_세입_일계
+    , 과오납_일계 * -1 AS 세입_과오납_일계
+    , (세입_일계 + 과오납_일계) AS 세입_계_일계
+    , 사업소지출_일계 * -1 AS 세출_배정_지출_일계
+    , 사업소반납_일계 AS 세출_배정_반납_일계
+    , (사업소지출_일계 + 사업소반납_일계) * -1 AS 세출_배정_계_일계
+    , 일상경비지출_일계 * -1 AS 세출_일상경비_지출_일계
+    , 일상경비반납_일계 AS 세출_일상경비_반납_일계
+    , (일상경비지출_일계 + 일상경비반납_일계) * -1 AS 세출_일상경비_계_일계
+    , (일상경비지출_일계)*-1 AS 세출_지출_계_일계
+    , (일상경비반납_일계) AS 세출_반납_계_일계
+    , (일상경비지출_일계 + 일상경비반납_일계 + 사업소지출_일계 + 사업소반납_일계)*-1 AS 세출_계_일계
+    , 전부금_일계 AS 세출_전부금_일계
+    , 전출_일계 * -1 AS 전용_전출_일계
+    , 전입_일계 AS 전용_전입_일계
+    , (전출_일계 + 전입_일계) * -1 AS 전용_전용계_일계
+    , 일시차입금_일계 AS 전용_일시차입금_일계
+    , 이월지급_일계 * -1 AS 전용_이월지급_일계
+    , (전출_일계 + 전입_일계 + 일시차입금_일계 + 이월지급_일계) * -1  AS 전용_계_일계
+    , 정기예금신규_일계 * -1 AS 예금_정기예금신규_일계
+    , 정기예금해지_일계 AS 예금_정기예금해지_일계
+    , (정기예금신규_일계 + 정기예금해지_일계) * -1 AS 예금_정기예금계_일계
+    , MMDA신규_일계 * -1 AS 예금_MMDA신규_일계
+    , MMDA해지_일계 AS 예금_MMDA해지_일계
+    , (MMDA신규_일계 + MMDA해지_일계) * -1 AS 예금_MMDA계_일계
+    , (정기예금신규_일계 + 정기예금해지_일계 + MMDA신규_일계 + MMDA해지_일계) * -1 AS 예금_계_일계
+    , 세입 AS 세입_세입
+    , 과오납 * -1 AS 세입_과오납
+    , (세입 + 과오납) AS 세입_계
+    , 사업소지출 * -1 AS 세출_배정_지출
+    , 사업소반납 AS 세출_배정_반납
+    , (사업소지출 + 사업소반납) * -1 AS 세출_배정_계
+    , 일상경비지출 * -1 AS 세출_일상경비_지출
+    , 일상경비반납 AS 세출_일상경비_반납
+    , (일상경비지출 + 일상경비반납) * -1 AS 세출_일상경비_계
+    , (일상경비지출)*-1 AS 세출_지출_계
+    , (일상경비반납) AS 세출_반납_계
+    , (일상경비지출 + 일상경비반납 + 사업소지출 + 사업소반납)*-1 AS 세출_계
+    , 전부금 AS 세출_전부금
+    , 전출 * -1 AS 전용_전출
+    , 전입 AS 전용_전입
+    , (전출 + 전입) * -1 AS 전용_전용계
+    , 일시차입금 AS 전용_일시차입금
+    , 이월지급 * -1 AS 전용_이월지급
+    , (전출 + 전입 + 일시차입금 + 이월지급) * -1  AS 전용_계
+    , 정기예금신규 * -1 AS 예금_정기예금신규
+    , 정기예금해지 AS 예금_정기예금해지
+    , (정기예금신규 + 정기예금해지) * -1 AS 예금_정기예금계
+    , MMDA신규 * -1 AS 예금_MMDA신규
+    , MMDA해지 AS 예금_MMDA해지
+    , (MMDA신규 + MMDA해지) * -1 AS 예금_MMDA계
+    , (정기예금신규 + 정기예금해지 + MMDA신규 + MMDA해지) * -1 AS 예금_계
+  FROM (
+    SELECT
+      A.ACNO
+      , A.GYEJWA_NM  
+      , G.CMM_DTL_C AS GUBUN_CMM_DTL_C
+      , G.HRNK_CMM_C_NM AS GUBUN_NAME
+      , GG.CMM_DTL_C AS GROUP_CMM_DTL_C   
+      , G.CMM_DTL_C_NM AS GROUP_NAME
+      , NVL(G.SORT_SNO, 9999) AS GROUP_SORT_SNO
+       -- 전년도 이월분 처리(110199) / 운용잔액(629903)은 정기예금에서 차감되므로 반대 부호로 더해줌
+      , SUM(CASE WHEN A.GISDT = B.KEORAEIL AND A.GG IN ('100000', '110100', '110200', '111100', '111200', '111300', '120400', '130000', '150000', '160000', '180000', '190800', '190900', '200000', '300000', '630000', '650000', '660000', '700000', '110199') THEN A.AMT ELSE 0 END) + SUM(CASE WHEN A.GISDT = B.KEORAEIL AND A.GG IN ('249999', '649999','629903') THEN -A.AMT ELSE 0 END) AS 세입_일계
+      , SUM(CASE WHEN A.GISDT = B.KEORAEIL AND A.GG IN ('240000', '640000', '249999', '649999') THEN A.AMT ELSE 0 END) AS 과오납_일계
+      , SUM(CASE WHEN A.GISDT = B.KEORAEIL AND A.GG IN ('670091', '670093', '610001') THEN A.AMT ELSE 0 END) AS 사업소지출_일계
+      , SUM(CASE WHEN A.GISDT = B.KEORAEIL AND A.GG IN ('179100', '179300', '140600') THEN A.AMT ELSE 0 END) AS 사업소반납_일계
+      , SUM(CASE WHEN A.GISDT = B.KEORAEIL AND A.GG IN ('670090', '670092', '670000', '610002', '680000', '690000', '800000', '940000') THEN A.AMT ELSE 0 END) AS 일상경비지출_일계
+      , SUM(CASE WHEN A.GISDT = B.KEORAEIL AND A.GG IN ('179000', '179200', '170000', '140700') THEN A.AMT ELSE 0 END) AS 일상경비반납_일계
+      , SUM(CASE WHEN A.GISDT = B.KEORAEIL AND A.GG IN ('') THEN A.AMT ELSE 0 END) AS 전부금_일계
+      , SUM(CASE WHEN A.GISDT = B.KEORAEIL AND A.GG IN ('620005') THEN A.AMT ELSE 0 END) AS 전출_일계
+      , SUM(CASE WHEN A.GISDT = B.KEORAEIL AND A.GG IN ('120500') THEN A.AMT ELSE 0 END) AS 전입_일계
+      , SUM(CASE WHEN A.GISDT = B.KEORAEIL AND A.GG IN ('') THEN A.AMT ELSE 0 END) AS 일시차입금_일계
+      , SUM(
+            CASE WHEN A.GISDT = B.KEORAEIL AND A.GG IN ('600000', '620004', '629904') THEN A.AMT
+            WHEN A.GISDT = B.KEORAEIL AND A.GG IN ('120399') THEN A.AMT * -1
+            ELSE 0 END
+        ) AS 이월지급_일계
+      , SUM(CASE WHEN A.GISDT = B.KEORAEIL AND A.GG IN ('620003', '629903') THEN A.AMT ELSE 0 END) AS 정기예금신규_일계
+      , SUM(CASE WHEN A.GISDT = B.KEORAEIL AND A.GG IN ('120300', '120399') THEN A.AMT ELSE 0 END) AS 정기예금해지_일계
+      , SUM(CASE WHEN A.GISDT = B.KEORAEIL AND A.GG IN ('620007', '620006') THEN A.AMT ELSE 0 END) AS MMDA신규_일계 -- 620006 별단예금 항목 분리 필요
+      , SUM(CASE WHEN A.GISDT = B.KEORAEIL AND A.GG IN ('121500','121400') THEN A.AMT ELSE 0 END) AS MMDA해지_일계 -- 121400 별단예금 항목 분리 필요
+      -- 전년도 이월분 처리(110199) / 운용잔액(629903)은 정기예금에서 차감되므로 반대 부호로 더해줌      
+      , SUM(CASE WHEN A.GG IN ('100000', '110100', '110200', '111100', '111200', '111300', '120400', '130000', '150000', '160000', '180000', '190800', '190900', '200000', '300000', '630000', '650000', '660000', '700000', '110199') THEN A.AMT ELSE 0 END) + SUM(CASE WHEN A.GG IN ('249999', '649999','629903') THEN -A.AMT ELSE 0 END) AS 세입
+      , SUM(CASE WHEN A.GG IN ('240000', '640000', '249999', '649999') THEN A.AMT ELSE 0 END) AS 과오납
+      , SUM(CASE WHEN A.GG IN ('670091', '670093', '610001') THEN A.AMT ELSE 0 END) AS 사업소지출
+      , SUM(CASE WHEN A.GG IN ('179100', '179300', '140600') THEN A.AMT ELSE 0 END) AS 사업소반납
+      , SUM(CASE WHEN A.GG IN ('670090', '670092', '670000', '610002', '680000', '690000', '800000', '940000') THEN A.AMT ELSE 0 END) AS 일상경비지출
+      , SUM(CASE WHEN A.GG IN ('179000', '179200', '170000', '140700') THEN A.AMT ELSE 0 END) AS 일상경비반납
+      , SUM(CASE WHEN A.GG IN ('') THEN A.AMT ELSE 0 END) AS 전부금
+      , SUM(CASE WHEN A.GG IN ('620005') THEN A.AMT ELSE 0 END) AS 전출
+      , SUM(CASE WHEN A.GG IN ('120500') THEN A.AMT ELSE 0 END) AS 전입
+      , SUM(CASE WHEN A.GG IN ('') THEN A.AMT ELSE 0 END) AS 일시차입금
+      , SUM(
+            CASE WHEN A.GG IN ('600000', '620004', '629904') THEN A.AMT
+            WHEN A.GG IN ('120399') THEN A.AMT * -1
+            ELSE 0 END
+        ) AS 이월지급
+      , SUM(CASE WHEN A.GG IN ('620003', '629903') THEN A.AMT ELSE 0 END) AS 정기예금신규
+      , SUM(CASE WHEN A.GG IN ('120300', '120399') THEN A.AMT ELSE 0 END) AS 정기예금해지
+      , SUM(CASE WHEN A.GG IN ('620007', '620006') THEN A.AMT ELSE 0 END) AS MMDA신규 -- 620006 별단예금 항목 분리 필요
+      , SUM(CASE WHEN A.GG IN ('121500','121400') THEN A.AMT ELSE 0 END) AS MMDA해지 -- 121400 별단예금 항목 분리 필요
+    FROM SLV A
+    JOIN PARAM_DATA B
+    ON A.GISDT <= B.KEORAEIL
+    -- 계좌매핑
+    INNER JOIN SFI_CMM_C_DAT GG ON GG.CMM_C_NM = '금고운용현황지역별연동계좌'
+    AND A.ACNO = GG.CMM_DTL_C_NM
+    -- 회계구분및그룹매핑
+    INNER JOIN SFI_CMM_C_DAT G ON G.CMM_C_NM = '금고운용현황회계구분'
+    AND G.USE_YN = 'Y'
+    AND G.UPMU_HMK_1_SLV = B.GEUMGO_CD 
+    AND G.UPMU_HMK_2_SLV = B.GUNGU_CD
+    AND G.CMM_DTL_C = GG.HRNK_CMM_DTL_C
+    GROUP BY A.ACNO
+            , A.GYEJWA_NM  
+            , G.CMM_DTL_C
+            , G.HRNK_CMM_C_NM
+            , GG.CMM_DTL_C   
+            , G.CMM_DTL_C_NM 
+            , G.SORT_SNO
+  )
+) 
+GROUP BY ACNO
+        , GYEJWA_NM  
+        , GUBUN_CMM_DTL_C
+        , GUBUN_NAME
+        , GROUP_CMM_DTL_C   
+        , GROUP_NAME
+        , GROUP_SORT_SNO
+),  
+TOTAL_DATA AS (SELECT 
+  0 AS GUBUN_CD
+  , '합계' AS GUBUN_NAME
+  , '합계' AS GROUP_NAME
+  , '합계' AS GYEJWA_NM 
+  , COUNT(GROUP_NAME) AS GYEJWA_CNT
+  , 0 AS GUBUN_SORT_SNO 
+   , '0' AS GROUP_SORT_SNO
+  , SUM(SEIP_SUM) AS SEIP_SUM
+  , SUM(SECHUL_SUM) AS SECHUL_SUM
+  , SUM(SEIP_SECHUL_JAN) AS SEIP_SECHUL_JAN
+FROM RESULT_DATA
+),  
+GUBUN_DATA AS (SELECT 
+  1 AS GUBUN_CD
+  , A.GUBUN_NAME AS GUBUN_NAME
+  , A.GUBUN_NAME AS GROUP_NAME
+  , A.GUBUN_NAME AS GYEJWA_NM 
+  , COUNT(A.GROUP_NAME) AS GYEJWA_CNT
+  , NVL((SELECT B.RN FROM GUBUN_ORDATA B WHERE B.GUBUN_NAME = A.GUBUN_NAME) , 99) AS GUBUN_SORT_SNO 
+   , '0' AS GROUP_SORT_SNO
+  , SUM(A.SEIP_SUM) AS SEIP_SUM
+  , SUM(A.SECHUL_SUM) AS SECHUL_SUM
+  , SUM(A.SEIP_SECHUL_JAN) AS SEIP_SECHUL_JAN
+FROM RESULT_DATA A
+GROUP BY A.GUBUN_NAME
+) ,
+GRP_DATA AS ( 
+  SELECT 
+  2 AS GUBUN_CD
+  , A.GUBUN_NAME AS GUBUN_NAME
+  , A.GROUP_NAME AS GROUP_NAME
+  , A.GROUP_NAME AS GYEJWA_NM  
+  , COUNT(A.GYEJWA_NM) AS GYEJWA_CNT
+  , NVL((SELECT B.RN FROM GUBUN_ORDATA B WHERE B.GUBUN_NAME = A.GUBUN_NAME) , 99) AS GUBUN_SORT_SNO 
+  , A.GROUP_SORT_SNO
+  , SUM(A.SEIP_SUM) AS SEIP_SUM
+  , SUM(A.SECHUL_SUM) AS SECHUL_SUM
+  , SUM(A.SEIP_SECHUL_JAN) AS SEIP_SECHUL_JAN
+FROM RESULT_DATA A
+GROUP BY A.GUBUN_NAME, A.GROUP_NAME, A.GROUP_SORT_SNO
+) , 
+GYEJWA_DATA AS (SELECT 
+  3 AS GUBUN_CD
+  , A.GUBUN_NAME AS GUBUN_NAME
+  , A.GROUP_NAME AS GROUP_NAME
+  , A.GYEJWA_NM AS GYEJWA_NM  
+  , 1 AS GYEJWA_CNT
+  , NVL((SELECT B.RN FROM GUBUN_ORDATA B WHERE B.GUBUN_NAME = A.GUBUN_NAME) , 99) AS GUBUN_SORT_SNO  
+  , A.GROUP_SORT_SNO
+  , SUM(A.SEIP_SUM) AS SEIP_SUM
+  , SUM(A.SECHUL_SUM) AS SECHUL_SUM
+  , SUM(A.SEIP_SECHUL_JAN) AS SEIP_SECHUL_JAN
+FROM RESULT_DATA A
+GROUP BY A.GUBUN_NAME, A.GROUP_NAME, A.GYEJWA_NM, A.GROUP_SORT_SNO
+) 
+SELECT 
+  GUBUN_CD
+  , '합계' AS GUBUN_NAME
+  , '' AS GROUP_NAME
+  , '' AS GYEJWA_NM  
+  , GYEJWA_CNT
+  , GUBUN_SORT_SNO 
+  , GROUP_SORT_SNO
+  , NVL(SEIP_SUM, 0) AS SEIP_SUM
+  , NVL(SECHUL_SUM, 0) AS SECHUL_SUM
+  , NVL(SEIP_SECHUL_JAN, 0) AS SEIP_SECHUL_JAN
+FROM TOTAL_DATA 
+UNION ALL
+SELECT 
+  GUBUN_CD
+  , GUBUN_NAME
+  , '' AS GROUP_NAME
+  , '' AS GYEJWA_NM  
+  , GYEJWA_CNT
+  , GUBUN_SORT_SNO 
+  , GROUP_SORT_SNO
+  , SEIP_SUM
+  , SECHUL_SUM
+  , SEIP_SECHUL_JAN
+FROM GUBUN_DATA 
+UNION ALL
+SELECT 
+  GUBUN_CD
+  , '' AS GUBUN_NAME
+  , GROUP_NAME
+  , '' AS GYEJWA_NM  
+  , GYEJWA_CNT
+  , GUBUN_SORT_SNO 
+  , GROUP_SORT_SNO
+  , SEIP_SUM
+  , SECHUL_SUM
+  , SEIP_SECHUL_JAN
+FROM GRP_DATA
+ WHERE  GUBUN_NAME IN (
+ SELECT GUBUN_NAME FROM GUBUN_DATA WHERE GYEJWA_CNT > 1
+ ) 
+UNION ALL
+SELECT
+  GUBUN_CD
+  , '' AS GUBUN_NAME
+  , '' AS GROUP_NAME
+  , GYEJWA_NM  
+  , GYEJWA_CNT
+  , GUBUN_SORT_SNO 
+  , GROUP_SORT_SNO
+  , SEIP_SUM
+  , SECHUL_SUM
+  , SEIP_SECHUL_JAN
+FROM GYEJWA_DATA
+WHERE (GUBUN_NAME, GROUP_NAME) IN (
+ SELECT GUBUN_NAME, GROUP_NAME FROM GRP_DATA WHERE GYEJWA_CNT > 1
+)
+) A 
+ORDER BY  A.GUBUN_SORT_SNO, A.GROUP_SORT_SNO, A.GUBUN_CD, A.GROUP_NAME, A.GYEJWA_NM
+============================================================================================
+
+-- 총수입지출증명 확인 요청
+
+SELECT
+ A.GUBUN_SORT_SNO
+ ,  A.GUBUN_CD
+ ,  A.GUBUN_NAME
+ ,  A.GROUP_NAME
+ ,  A.GYEJWA_NM
+ ,CASE 
+        WHEN A.GUBUN_CD = 0 THEN '합계'
+  WHEN A.GUBUN_CD = 1 THEN A.GUBUN_NAME 
+  WHEN A.GUBUN_CD = 2 THEN A.GROUP_NAME 
+  WHEN A.GUBUN_CD = 3 THEN A.GYEJWA_NM 
+   ELSE A.GYEJWA_NM END AS GUBUN_NM  
+ ,  A.GYEJWA_CNT
+ ,  A.SEIP_SUM
+ ,  A.SECHUL_SUM
+ ,  A.SEIP_SECHUL_JAN
+FROM 
+(
+WITH PARAM_DATA AS (
+    SELECT
+        '28' AS GEUMGO_CD
+      , '0' AS GUNGU_CD
+      , NVL('', 'all') AS HOIKYE_C
+      , '2024' AS HOIKYE_YEAR
+      , '20251021' AS KEORAEIL
+    FROM DUAL
+    )
+  , GUBUN_ORDATA AS (
+    SELECT
+        ROWNUM AS RN,
+        GUBUN_NAME,
+        GEUMGO_CD,
+        GUNGU_CD,
+        SORT_SNO
+        FROM 
+        (
+        SELECT
+  A.GUBUN_NAME,
+  A.GEUMGO_CD,
+  A.GUNGU_CD,
+  A.SORT_SNO
+ FROM (
+ SELECT 
+            A.HRNK_CMM_C_NM AS GUBUN_NAME,
+            A.UPMU_HMK_1_SLV AS GEUMGO_CD,
+            A.UPMU_HMK_2_SLV AS GUNGU_CD,
+            MIN(A.SORT_SNO) AS SORT_SNO
+        FROM SFI_CMM_C_DAT A,
+        PARAM_DATA B
+        WHERE A.CMM_C_NM = '금고운용현황회계구분'
+        AND A.USE_YN = 'Y'
+        AND A.UPMU_HMK_1_SLV = B.GEUMGO_CD
+        AND A.UPMU_HMK_2_SLV = B.GUNGU_CD
+        GROUP BY A.HRNK_CMM_C_NM,
+            A.UPMU_HMK_1_SLV,
+            A.UPMU_HMK_2_SLV
+ ) A
+ ORDER BY A.SORT_SNO
+        ) A
+  )  
+  , GYEJWA AS (
+    SELECT
+      A.FIL_100_CTNT2 AS ACNO
+      , A.SIGUMGO_AC_B AS ACB
+      , A.SIGUMGO_AGE_AC_G AS AGE
+      , A.SIGUMGO_AC_G AS ACG
+      , A.SIGUMGO_AC_NM AS GYEJWA_NM
+    FROM ACL_SIGUMGO_MAS A,
+    PARAM_DATA B
+    WHERE 1=1
+    AND A.MNG_NO = 1
+    AND A.SIGUMGO_AGE_AC_G IN (0, 1)
+    AND A.SIGUMGO_ORG_C = B.GEUMGO_CD
+    AND A.FIL_100_CTNT2 IN (
+         SELECT 
+          CASE WHEN SUBSTR(CMM_DTL_C_NM, 16, 2) = 'YY' THEN SUBSTR(CMM_DTL_C_NM, 1, 15) || SUBSTR( B.HOIKYE_YEAR, 3, 2) 
+          ELSE CMM_DTL_C_NM 
+          END  AS GONGGEUM_GYEJWA
+        FROM SFI_CMM_C_DAT
+        WHERE CMM_C_NM = 'RPT세입세출일계표계좌'
+        AND USE_YN = 'Y'
+        AND HRNK_CMM_DTL_C = B.GEUMGO_CD
+        AND (
+          'all' = B.GUNGU_CD
+          OR
+          UPMU_HMK_1_SLV = B.GUNGU_CD
+        )
+        -- 회계 전체조건 추가
+        AND (
+          'all' = B.HOIKYE_C
+          OR
+          UPMU_HMK_2_SLV = B.HOIKYE_C
+        )
+       )
+  )
+  , DANGSEIPJOJEONG AS (
+ SELECT
+        A.KEORAEIL AS TRXDT
+        , A.KEORAEIL AS GISDT
+        , (
+  SELECT 
+      (CASE WHEN SUBSTR(NVL(B.UPMU_HMK_3_SLV, '00000000000000000'), 16, 2) = '99' THEN NVL(B.UPMU_HMK_3_SLV, '00000000000000000')
+   ELSE SUBSTR(NVL(B.UPMU_HMK_3_SLV, '00000000000000000'), 1, 15) || SUBSTR(NVL(C.HOIKYE_YEAR , '0000'), 3, 2) 
+   END)
+   AS ACNO
+  FROM SFI_CMM_C_DAT B
+  WHERE B.CMM_C_NM = 'RPT세입조정계좌매핑'
+  AND B.USE_YN = 'Y'
+  AND B.HRNK_CMM_DTL_C = A.GEUMGO_CODE
+  AND B.UPMU_HMK_1_SLV = A.JIBGYE_CODE
+  AND B.UPMU_HMK_2_SLV = A.GUNGU_CODE
+  AND ROWNUM = 1
+ ) AS ACNO
+        , 'SJ' AS G
+        , CASE WHEN A.IPJI_GUBUN = 1 THEN '249999' ELSE '649999' END AS GG
+        , DECODE(A.IPJI_GUBUN, 2, -1, 1) * (A.GYOYUKSE_AMT + A.NONGTEUKSE_AMT + A.JIBANGSE_AMT + A.SEWOI_AMT) AS AMT
+      FROM RPT_DANGSEIPJOJEONG A,
+    PARAM_DATA C
+      WHERE A.SUNAPIL BETWEEN  C.HOIKYE_YEAR || '0101' AND C.KEORAEIL
+ AND A.GEUMGO_CODE = C.GEUMGO_CD
+        AND A.JOJEONG_GUBUN = 2
+  )
+  , SLV AS (
+    -- YY계좌 공금거래
+    SELECT
+        A.TRXDT
+        , A.GISDT
+        , A.FIL_100_CTNT5 AS ACNO
+        , (SELECT GYEJWA_NM FROM GYEJWA WHERE ACNO = A.FIL_100_CTNT5) AS GYEJWA_NM
+        , (SELECT ACB FROM GYEJWA WHERE ACNO = A.FIL_100_CTNT5) AS ACB
+        , (SELECT AGE FROM GYEJWA WHERE ACNO = A.FIL_100_CTNT5) AS AGE
+        , 'JG' AS G
+        , LPAD(A.SIGUMGO_TRX_G, 2, '0') || LPAD(A.SIGUMGO_IP_TRX_G, 2, '0') || LPAD(A.SIGUMGO_JI_TRX_G, 2, '0') AS GG
+        , SUM( DECODE(A.CRT_CAN_G, 1, -1, 2, -1, 33, -1, 1) * DECODE(A.IPJI_G, 2, -1, 1) * A.TRAMT ) AS AMT
+      FROM ACL_SIGUMGO_SLV A,
+      PARAM_DATA B
+      WHERE A.FIL_100_CTNT5 IN (SELECT ACNO FROM GYEJWA)
+      AND A.GISDT >=  B.HOIKYE_YEAR || '0101'
+      AND A.SIGUMGO_HOIKYE_YR <> 9999
+      GROUP BY A.TRXDT, A.GISDT, A.FIL_100_CTNT5, LPAD(A.SIGUMGO_TRX_G, 2, '0') || LPAD(A.SIGUMGO_IP_TRX_G, 2, '0') || LPAD(A.SIGUMGO_JI_TRX_G, 2, '0')
+
+      UNION ALL
+
+      -- 99계좌 공금거래 / 기준일, 기산일 당년도분
+
+    SELECT
+        A.TRXDT
+        , A.GISDT
+        , A.FIL_100_CTNT5 AS ACNO
+        , (SELECT GYEJWA_NM FROM GYEJWA WHERE ACNO = A.FIL_100_CTNT5) AS GYEJWA_NM
+        , (SELECT ACB FROM GYEJWA WHERE ACNO = A.FIL_100_CTNT5) AS ACB
+        , (SELECT AGE FROM GYEJWA WHERE ACNO = A.FIL_100_CTNT5) AS AGE
+        , 'JG' AS G
+        , LPAD(A.SIGUMGO_TRX_G, 2, '0') || LPAD(A.SIGUMGO_IP_TRX_G, 2, '0') || LPAD(A.SIGUMGO_JI_TRX_G, 2, '0') AS GG
+        , SUM( DECODE(A.CRT_CAN_G, 1, -1, 2, -1, 33, -1, 1) * DECODE(A.IPJI_G, 2, -1, 1) * A.TRAMT ) AS AMT
+      FROM ACL_SIGUMGO_SLV A,
+      PARAM_DATA B
+      WHERE A.FIL_100_CTNT5 IN (SELECT ACNO FROM GYEJWA)
+      AND A.GJDT >=  B.HOIKYE_YEAR || '0101'
+      AND A.GJDT <= (CASE WHEN B.KEORAEIL > B.HOIKYE_YEAR || '1231' THEN B.HOIKYE_YEAR || '1231' ELSE B.KEORAEIL END)
+      AND A.GISDT >= B.HOIKYE_YEAR || '0101'
+      AND A.SIGUMGO_HOIKYE_YR = 9999
+      GROUP BY A.TRXDT, A.GISDT, A.FIL_100_CTNT5, LPAD(A.SIGUMGO_TRX_G, 2, '0') || LPAD(A.SIGUMGO_IP_TRX_G, 2, '0') || LPAD(A.SIGUMGO_JI_TRX_G, 2, '0')
+
+      UNION ALL
+
+      -- 99계좌 공금거래 / 기준일 전년도, 기산일 당년도분 - 일별로 세입처리 (110199)
+      SELECT
+        A.TRXDT
+        , A.GISDT
+        , A.FIL_100_CTNT5 AS ACNO
+        , (SELECT GYEJWA_NM FROM GYEJWA WHERE ACNO = A.FIL_100_CTNT5) AS GYEJWA_NM
+        , (SELECT ACB FROM GYEJWA WHERE ACNO = A.FIL_100_CTNT5) AS ACB
+        , (SELECT AGE FROM GYEJWA WHERE ACNO = A.FIL_100_CTNT5) AS AGE
+        , 'JG' AS G
+        , '110199' AS GG
+        , SUM( DECODE(A.CRT_CAN_G, 1, -1, 2, -1, 33, -1, 1) * DECODE(A.IPJI_G, 2, -1, 1) * A.TRAMT ) AS AMT
+      FROM ACL_SIGUMGO_SLV A,
+      PARAM_DATA B
+      WHERE A.FIL_100_CTNT5 IN (SELECT ACNO FROM GYEJWA)
+      AND A.GJDT < B.HOIKYE_YEAR || '0101'
+      AND A.GISDT >= B.HOIKYE_YEAR || '0101'
+      AND A.SIGUMGO_HOIKYE_YR = 9999
+      GROUP BY A.TRXDT, A.GISDT, A.FIL_100_CTNT5
+
+      UNION ALL
+
+      -- 99계좌 공금거래 / 기준일 당년도, 기산일 익년도분 - 일별로 가이월지급처리 (629904)
+      SELECT
+        A.TRXDT
+        , A.GISDT
+        , A.FIL_100_CTNT5 AS ACNO
+        , (SELECT GYEJWA_NM FROM GYEJWA WHERE ACNO = A.FIL_100_CTNT5) AS GYEJWA_NM
+        , (SELECT ACB FROM GYEJWA WHERE ACNO = A.FIL_100_CTNT5) AS ACB
+        , (SELECT AGE FROM GYEJWA WHERE ACNO = A.FIL_100_CTNT5) AS AGE
+        , 'JG' AS G
+        , '629904' AS GG
+        , SUM( DECODE(A.CRT_CAN_G, 1, -1, 2, -1, 33, -1, 1) * DECODE(A.IPJI_G, 2, -1, 1) * A.TRAMT ) * -1 AS AMT
+      FROM ACL_SIGUMGO_SLV A,
+      PARAM_DATA B
+      WHERE A.FIL_100_CTNT5 IN (SELECT ACNO FROM GYEJWA)
+      AND A.GJDT >=  B.HOIKYE_YEAR || '0101'
+      AND A.GJDT <= (CASE WHEN B.KEORAEIL > B.HOIKYE_YEAR || '1231' THEN B.HOIKYE_YEAR || '1231' ELSE B.KEORAEIL END)
+      AND A.GISDT > B.HOIKYE_YEAR || '1231'
+      AND A.SIGUMGO_HOIKYE_YR = 9999
+      GROUP BY A.TRXDT, A.GISDT, A.FIL_100_CTNT5
+      
+      UNION ALL
+
+      -- 한도거래
+      SELECT
+        A.TRXDT
+        , A.GISDT
+        , A.SIGUMGO_ACNO AS ACNO
+        , (SELECT GYEJWA_NM FROM GYEJWA WHERE ACNO = A.SIGUMGO_ACNO) AS GYEJWA_NM
+        , (SELECT ACB FROM GYEJWA WHERE ACNO = A.SIGUMGO_ACNO) AS ACB
+        , (SELECT AGE FROM GYEJWA WHERE ACNO = A.SIGUMGO_ACNO) AS AGE
+        , 'HD' AS G
+        , TO_CHAR(A.SIGUMGO_TRX_G) AS GG
+        , SUM( DECODE(A.CRT_CAN_G, 1, -1, 2, -1, 33, -1, 1) * DECODE(A.IPJI_G, 2, -1, 1) * A.TRAMT ) AS AMT
+      FROM ACL_SGGHANDO_SLV A,
+      PARAM_DATA B
+      WHERE A.SIGUMGO_ACNO IN (SELECT ACNO FROM GYEJWA)
+      AND A.TRXDT >=  B.HOIKYE_YEAR || '0101'
+      GROUP BY A.TRXDT, A.GISDT, A.SIGUMGO_ACNO, A.SIGUMGO_TRX_G
+
+      UNION ALL
+
+      SELECT
+        A.TRXDT
+        , A.GISDT
+        , A.ACNO
+        , B.GYEJWA_NM
+        , B.ACB 
+        , B.AGE
+        , A.G
+        , A.GG
+        , A.AMT
+      FROM DANGSEIPJOJEONG A, GYEJWA B
+      WHERE A.ACNO = B.ACNO
+
+      UNION ALL
+      
+      -- 운용잔액 / 전년자 말일금액을 익년 첫영업일자로 가져옴 (629903) - 지급거래형식으로, 마이너스 곱해줌
+      SELECT
+        TRXDT AS TRXDT
+        , TRXDT AS GISDT
+        , GONGGEUM_GYEJWA AS ACNO
+        , (SELECT GYEJWA_NM FROM GYEJWA WHERE ACNO = GONGGEUM_GYEJWA) AS GYEJWA_NM
+        , (SELECT ACB FROM GYEJWA WHERE ACNO = GONGGEUM_GYEJWA) AS ACB
+        , (SELECT AGE FROM GYEJWA WHERE ACNO = GONGGEUM_GYEJWA) AS AGE
+        , 'JG' AS G
+        , '629903' AS GG
+        , JANAEK * -1 AS AMT
+      FROM (
+        SELECT
+          (SELECT BIZ_DT
+          FROM MAP_JOB_DATE
+          WHERE DW_BAS_DDT = B.HOIKYE_YEAR || '0101') AS TRXDT
+          , CASE
+            WHEN SUBSTR(A.GONGGEUM_GYEJWA, 16, 2) <> 99 THEN SUBSTR(A.GONGGEUM_GYEJWA, 1, 15) || SUBSTR(B.HOIKYE_YEAR, 3, 2)
+            ELSE A.GONGGEUM_GYEJWA
+          END AS GONGGEUM_GYEJWA
+          , SUM(A.JANAEK) AS JANAEK
+        FROM RPT_UNYONG_JAN A,
+        RPT_UNYONG_GYEJWA C,
+        PARAM_DATA B
+        WHERE 1=1
+          AND A.GEUMGO_CODE = B.GEUMGO_CD
+          AND A.KIJUNIL = (SELECT
+                  CASE
+                    WHEN DT_G = 0 THEN BIZ_DT
+                    ELSE BF1_BIZ_DT
+                  END AS BIZ_DT
+                  FROM MAP_JOB_DATE
+                  WHERE DW_BAS_DDT = B.HOIKYE_YEAR - 1 || '1231')
+          AND A.JANAEK > 0
+          AND A.GEUMGO_CODE = C.GEUMGO_CODE
+          AND A.GONGGEUM_GYEJWA = C.GONGGEUM_GYEJWA
+          AND A.UNYONG_GYEJWA = C.UNYONG_GYEJWA
+          AND NVL(C.HJI_DT, '99999999') > (SELECT
+                  CASE
+                    WHEN DT_G = 0 THEN BIZ_DT
+                    ELSE BF1_BIZ_DT
+                  END AS BIZ_DT
+                  FROM MAP_JOB_DATE
+                  WHERE DW_BAS_DDT = B.HOIKYE_YEAR - 1 || '1231')
+        GROUP BY A.GONGGEUM_GYEJWA, B.HOIKYE_YEAR
+      )
+      WHERE GONGGEUM_GYEJWA IN (SELECT ACNO FROM GYEJWA)
+      UNION ALL
+
+      -- 운용잔액 / 당해 말일금액을 말일에 해지처리해줌 (120399)
+      SELECT
+        TRXDT AS TRXDT
+        , TRXDT AS GISDT
+        , GONGGEUM_GYEJWA AS ACNO
+        , (SELECT GYEJWA_NM FROM GYEJWA WHERE ACNO = GONGGEUM_GYEJWA) AS GYEJWA_NM
+        , (SELECT ACB FROM GYEJWA WHERE ACNO = GONGGEUM_GYEJWA) AS ACB
+        , (SELECT AGE FROM GYEJWA WHERE ACNO = GONGGEUM_GYEJWA) AS AGE
+        , 'JG' AS G
+        , '120399' AS GG
+        , JANAEK AS AMT
+      FROM (
+        SELECT
+          (SELECT BIZ_DT
+          FROM MAP_JOB_DATE
+          WHERE DW_BAS_DDT = B.HOIKYE_YEAR + 1 || '0101') AS TRXDT
+          , CASE
+            WHEN SUBSTR(A.GONGGEUM_GYEJWA, 16, 2) <> 99 THEN SUBSTR(A.GONGGEUM_GYEJWA, 1, 15) || SUBSTR(B.HOIKYE_YEAR, 3, 2)
+            ELSE A.GONGGEUM_GYEJWA
+          END AS GONGGEUM_GYEJWA
+          , SUM(A.JANAEK) AS JANAEK
+        FROM RPT_UNYONG_JAN A,
+        PARAM_DATA B
+        WHERE 1=1
+          AND A.KIJUNIL = (SELECT
+                  CASE
+                    WHEN DT_G = 0 THEN BIZ_DT
+                    ELSE BF1_BIZ_DT
+                  END AS BIZ_DT
+                  FROM MAP_JOB_DATE
+                  WHERE DW_BAS_DDT = B.HOIKYE_YEAR || '1231')
+          AND JANAEK > 0
+        GROUP BY A.GONGGEUM_GYEJWA, B.HOIKYE_YEAR
+      )
+      WHERE GONGGEUM_GYEJWA IN (SELECT ACNO FROM GYEJWA)
+      UNION ALL
+
+      -- 공금잔액 / 전년자 말일금액을 익년 첫영업일자로 가져옴 (99회계 대상, 110199)
+
+      SELECT
+        TRXDT AS TRXDT
+        , TRXDT AS GISDT
+        , GONGGEUM_GYEJWA AS ACNO
+              , (SELECT GYEJWA_NM FROM GYEJWA WHERE ACNO = GONGGEUM_GYEJWA) AS GYEJWA_NM
+              , (SELECT ACB FROM GYEJWA WHERE ACNO = GONGGEUM_GYEJWA) AS ACB
+              , (SELECT AGE FROM GYEJWA WHERE ACNO = GONGGEUM_GYEJWA) AS AGE
+        , 'JG' AS G
+        , '110199' AS GG
+        , JANAEK AS AMT
+      FROM (
+        SELECT /*+ HINT1 */
+          (SELECT BIZ_DT
+          FROM MAP_JOB_DATE
+          WHERE DW_BAS_DDT = B.HOIKYE_YEAR || '0101') AS TRXDT
+          ,A.GONGGEUM_GYEJWA
+          , A.JANAEK
+        FROM RPT_GONGGEUM_JAN A,
+        PARAM_DATA B
+        WHERE 1=1
+        AND A.KEORAEIL = B.HOIKYE_YEAR - 1 || '1231'
+        AND A.HOIGYE_YEAR = 9999
+        AND A.GONGGEUM_GYEJWA IN (SELECT ACNO FROM GYEJWA)
+      )
+
+      UNION ALL
+
+      -- 공금잔액 / 당해 말일금액을 말일에 가이월지급처리해줌 (99회계 대상, 629904)
+      SELECT
+        TRXDT AS TRXDT
+        , TRXDT AS GISDT
+        , GONGGEUM_GYEJWA AS ACNO
+              , (SELECT GYEJWA_NM FROM GYEJWA WHERE ACNO = GONGGEUM_GYEJWA) AS GYEJWA_NM
+              , (SELECT ACB FROM GYEJWA WHERE ACNO = GONGGEUM_GYEJWA) AS ACB
+              , (SELECT AGE FROM GYEJWA WHERE ACNO = GONGGEUM_GYEJWA) AS AGE
+        , 'JG' AS G
+        , '629904' AS GG
+        , JANAEK * -1 AS AMT
+      FROM (
+        SELECT /*+ HINT2 */
+          (SELECT BIZ_DT
+          FROM MAP_JOB_DATE
+          WHERE DW_BAS_DDT = B.HOIKYE_YEAR + 1 || '0101') AS TRXDT
+          ,A.GONGGEUM_GYEJWA
+          , A.JANAEK
+        FROM RPT_GONGGEUM_JAN A,
+        PARAM_DATA B
+        WHERE 1=1
+        AND A.KEORAEIL = B.HOIKYE_YEAR || '1231'
+        AND A.HOIGYE_YEAR = 9999
+        AND A.GONGGEUM_GYEJWA IN (SELECT ACNO FROM GYEJWA)
+      )
+
+  ),
+RESULT_DATA AS (
+SELECT
+  ACNO
+  , GYEJWA_NM  
+  , GUBUN_CMM_DTL_C
+  , GUBUN_NAME
+  , GROUP_CMM_DTL_C   
+  , GROUP_NAME
+  , GROUP_SORT_SNO
+  , SUM(세입_계) AS SEIP_SUM
+  , SUM(세출_계) AS SECHUL_SUM
+  , SUM(세입_계 - 세출_계) AS SEIP_SECHUL_JAN
+FROM (
+
+  SELECT
+    ACNO
+    , GYEJWA_NM  
+    , GUBUN_CMM_DTL_C
+    , GUBUN_NAME
+    , GROUP_CMM_DTL_C   
+    , GROUP_NAME
+    , GROUP_SORT_SNO
+    , 세입_일계 AS 세입_세입_일계
+    , 과오납_일계 * -1 AS 세입_과오납_일계
+    , (세입_일계 + 과오납_일계) AS 세입_계_일계
+    , 사업소지출_일계 * -1 AS 세출_배정_지출_일계
+    , 사업소반납_일계 AS 세출_배정_반납_일계
+    , (사업소지출_일계 + 사업소반납_일계) * -1 AS 세출_배정_계_일계
+    , 일상경비지출_일계 * -1 AS 세출_일상경비_지출_일계
+    , 일상경비반납_일계 AS 세출_일상경비_반납_일계
+    , (일상경비지출_일계 + 일상경비반납_일계) * -1 AS 세출_일상경비_계_일계
+    , (일상경비지출_일계)*-1 AS 세출_지출_계_일계
+    , (일상경비반납_일계) AS 세출_반납_계_일계
+    , (일상경비지출_일계 + 일상경비반납_일계 + 사업소지출_일계 + 사업소반납_일계)*-1 AS 세출_계_일계
+    , 전부금_일계 AS 세출_전부금_일계
+    , 전출_일계 * -1 AS 전용_전출_일계
+    , 전입_일계 AS 전용_전입_일계
+    , (전출_일계 + 전입_일계) * -1 AS 전용_전용계_일계
+    , 일시차입금_일계 AS 전용_일시차입금_일계
+    , 이월지급_일계 * -1 AS 전용_이월지급_일계
+    , (전출_일계 + 전입_일계 + 일시차입금_일계 + 이월지급_일계) * -1  AS 전용_계_일계
+    , 정기예금신규_일계 * -1 AS 예금_정기예금신규_일계
+    , 정기예금해지_일계 AS 예금_정기예금해지_일계
+    , (정기예금신규_일계 + 정기예금해지_일계) * -1 AS 예금_정기예금계_일계
+    , MMDA신규_일계 * -1 AS 예금_MMDA신규_일계
+    , MMDA해지_일계 AS 예금_MMDA해지_일계
+    , (MMDA신규_일계 + MMDA해지_일계) * -1 AS 예금_MMDA계_일계
+    , (정기예금신규_일계 + 정기예금해지_일계 + MMDA신규_일계 + MMDA해지_일계) * -1 AS 예금_계_일계
+    , 세입 AS 세입_세입
+    , 과오납 * -1 AS 세입_과오납
+    , (세입 + 과오납) AS 세입_계
+    , 사업소지출 * -1 AS 세출_배정_지출
+    , 사업소반납 AS 세출_배정_반납
+    , (사업소지출 + 사업소반납) * -1 AS 세출_배정_계
+    , 일상경비지출 * -1 AS 세출_일상경비_지출
+    , 일상경비반납 AS 세출_일상경비_반납
+    , (일상경비지출 + 일상경비반납) * -1 AS 세출_일상경비_계
+    , (일상경비지출)*-1 AS 세출_지출_계
+    , (일상경비반납) AS 세출_반납_계
+    , (일상경비지출 + 일상경비반납 + 사업소지출 + 사업소반납)*-1 AS 세출_계
+    , 전부금 AS 세출_전부금
+    , 전출 * -1 AS 전용_전출
+    , 전입 AS 전용_전입
+    , (전출 + 전입) * -1 AS 전용_전용계
+    , 일시차입금 AS 전용_일시차입금
+    , 이월지급 * -1 AS 전용_이월지급
+    , (전출 + 전입 + 일시차입금 + 이월지급) * -1  AS 전용_계
+    , 정기예금신규 * -1 AS 예금_정기예금신규
+    , 정기예금해지 AS 예금_정기예금해지
+    , (정기예금신규 + 정기예금해지) * -1 AS 예금_정기예금계
+    , MMDA신규 * -1 AS 예금_MMDA신규
+    , MMDA해지 AS 예금_MMDA해지
+    , (MMDA신규 + MMDA해지) * -1 AS 예금_MMDA계
+    , (정기예금신규 + 정기예금해지 + MMDA신규 + MMDA해지) * -1 AS 예금_계
+  FROM (
+    SELECT
+      A.ACNO
+      , A.GYEJWA_NM  
+      , G.CMM_DTL_C AS GUBUN_CMM_DTL_C
+      , G.HRNK_CMM_C_NM AS GUBUN_NAME
+      , GG.CMM_DTL_C AS GROUP_CMM_DTL_C   
+      , G.CMM_DTL_C_NM AS GROUP_NAME
+      , NVL(G.SORT_SNO, 9999) AS GROUP_SORT_SNO
+       -- 전년도 이월분 처리(110199) / 운용잔액(629903)은 정기예금에서 차감되므로 반대 부호로 더해줌
+      , SUM(CASE WHEN A.GISDT = B.KEORAEIL AND A.GG IN ('100000', '110100', '110200', '111100', '111200', '111300', '120400', '130000', '150000', '160000', '180000', '190800', '190900', '200000', '300000', '630000', '650000', '660000', '700000', '110199') THEN A.AMT ELSE 0 END) + SUM(CASE WHEN A.GISDT = B.KEORAEIL AND A.GG IN ('249999', '649999','629903') THEN -A.AMT ELSE 0 END) AS 세입_일계
+      , SUM(CASE WHEN A.GISDT = B.KEORAEIL AND A.GG IN ('240000', '640000', '249999', '649999') THEN A.AMT ELSE 0 END) AS 과오납_일계
+      , SUM(CASE WHEN A.GISDT = B.KEORAEIL AND A.GG IN ('670091', '670093', '610001') THEN A.AMT ELSE 0 END) AS 사업소지출_일계
+      , SUM(CASE WHEN A.GISDT = B.KEORAEIL AND A.GG IN ('179100', '179300', '140600') THEN A.AMT ELSE 0 END) AS 사업소반납_일계
+      , SUM(CASE WHEN A.GISDT = B.KEORAEIL AND A.GG IN ('670090', '670092', '670000', '610002', '680000', '690000', '800000', '940000') THEN A.AMT ELSE 0 END) AS 일상경비지출_일계
+      , SUM(CASE WHEN A.GISDT = B.KEORAEIL AND A.GG IN ('179000', '179200', '170000', '140700') THEN A.AMT ELSE 0 END) AS 일상경비반납_일계
+      , SUM(CASE WHEN A.GISDT = B.KEORAEIL AND A.GG IN ('') THEN A.AMT ELSE 0 END) AS 전부금_일계
+      , SUM(CASE WHEN A.GISDT = B.KEORAEIL AND A.GG IN ('620005') THEN A.AMT ELSE 0 END) AS 전출_일계
+      , SUM(CASE WHEN A.GISDT = B.KEORAEIL AND A.GG IN ('120500') THEN A.AMT ELSE 0 END) AS 전입_일계
+      , SUM(CASE WHEN A.GISDT = B.KEORAEIL AND A.GG IN ('') THEN A.AMT ELSE 0 END) AS 일시차입금_일계
+      , SUM(
+            CASE WHEN A.GISDT = B.KEORAEIL AND A.GG IN ('600000', '620004', '629904') THEN A.AMT
+            WHEN A.GISDT = B.KEORAEIL AND A.GG IN ('120399') THEN A.AMT * -1
+            ELSE 0 END
+        ) AS 이월지급_일계
+      , SUM(CASE WHEN A.GISDT = B.KEORAEIL AND A.GG IN ('620003', '629903') THEN A.AMT ELSE 0 END) AS 정기예금신규_일계
+      , SUM(CASE WHEN A.GISDT = B.KEORAEIL AND A.GG IN ('120300', '120399') THEN A.AMT ELSE 0 END) AS 정기예금해지_일계
+      , SUM(CASE WHEN A.GISDT = B.KEORAEIL AND A.GG IN ('620007', '620006') THEN A.AMT ELSE 0 END) AS MMDA신규_일계 -- 620006 별단예금 항목 분리 필요
+      , SUM(CASE WHEN A.GISDT = B.KEORAEIL AND A.GG IN ('121500','121400') THEN A.AMT ELSE 0 END) AS MMDA해지_일계 -- 121400 별단예금 항목 분리 필요
+      -- 전년도 이월분 처리(110199) / 운용잔액(629903)은 정기예금에서 차감되므로 반대 부호로 더해줌      
+      , SUM(CASE WHEN A.GG IN ('100000', '110100', '110200', '111100', '111200', '111300', '120400', '130000', '150000', '160000', '180000', '190800', '190900', '200000', '300000', '630000', '650000', '660000', '700000', '110199') THEN A.AMT ELSE 0 END) + SUM(CASE WHEN A.GG IN ('249999', '649999','629903') THEN -A.AMT ELSE 0 END) AS 세입
+      , SUM(CASE WHEN A.GG IN ('240000', '640000', '249999', '649999') THEN A.AMT ELSE 0 END) AS 과오납
+      , SUM(CASE WHEN A.GG IN ('670091', '670093', '610001') THEN A.AMT ELSE 0 END) AS 사업소지출
+      , SUM(CASE WHEN A.GG IN ('179100', '179300', '140600') THEN A.AMT ELSE 0 END) AS 사업소반납
+      , SUM(CASE WHEN A.GG IN ('670090', '670092', '670000', '610002', '680000', '690000', '800000', '940000') THEN A.AMT ELSE 0 END) AS 일상경비지출
+      , SUM(CASE WHEN A.GG IN ('179000', '179200', '170000', '140700') THEN A.AMT ELSE 0 END) AS 일상경비반납
+      , SUM(CASE WHEN A.GG IN ('') THEN A.AMT ELSE 0 END) AS 전부금
+      , SUM(CASE WHEN A.GG IN ('620005') THEN A.AMT ELSE 0 END) AS 전출
+      , SUM(CASE WHEN A.GG IN ('120500') THEN A.AMT ELSE 0 END) AS 전입
+      , SUM(CASE WHEN A.GG IN ('') THEN A.AMT ELSE 0 END) AS 일시차입금
+      , SUM(
+            CASE WHEN A.GG IN ('600000', '620004', '629904') THEN A.AMT
+            WHEN A.GG IN ('120399') THEN A.AMT * -1
+            ELSE 0 END
+        ) AS 이월지급
+      , SUM(CASE WHEN A.GG IN ('620003', '629903') THEN A.AMT ELSE 0 END) AS 정기예금신규
+      , SUM(CASE WHEN A.GG IN ('120300', '120399') THEN A.AMT ELSE 0 END) AS 정기예금해지
+      , SUM(CASE WHEN A.GG IN ('620007', '620006') THEN A.AMT ELSE 0 END) AS MMDA신규 -- 620006 별단예금 항목 분리 필요
+      , SUM(CASE WHEN A.GG IN ('121500','121400') THEN A.AMT ELSE 0 END) AS MMDA해지 -- 121400 별단예금 항목 분리 필요
+    FROM SLV A
+    JOIN PARAM_DATA B
+    ON A.GISDT <= B.KEORAEIL
+    -- 계좌매핑
+    INNER JOIN SFI_CMM_C_DAT GG ON GG.CMM_C_NM = '금고운용현황지역별연동계좌'
+    AND A.ACNO = GG.CMM_DTL_C_NM
+    -- 회계구분및그룹매핑
+    INNER JOIN SFI_CMM_C_DAT G ON G.CMM_C_NM = '금고운용현황회계구분'
+    AND G.USE_YN = 'Y'
+    AND G.UPMU_HMK_1_SLV = B.GEUMGO_CD 
+    AND G.UPMU_HMK_2_SLV = B.GUNGU_CD
+    AND G.CMM_DTL_C = GG.HRNK_CMM_DTL_C
+    GROUP BY A.ACNO
+            , A.GYEJWA_NM  
+            , G.CMM_DTL_C
+            , G.HRNK_CMM_C_NM
+            , GG.CMM_DTL_C   
+            , G.CMM_DTL_C_NM 
+            , G.SORT_SNO
+  )
+) 
+GROUP BY ACNO
+        , GYEJWA_NM  
+        , GUBUN_CMM_DTL_C
+        , GUBUN_NAME
+        , GROUP_CMM_DTL_C   
+        , GROUP_NAME
+        , GROUP_SORT_SNO
+),  
+TOTAL_DATA AS (SELECT 
+  0 AS GUBUN_CD
+  , '합계' AS GUBUN_NAME
+  , '합계' AS GROUP_NAME
+  , '합계' AS GYEJWA_NM 
+  , COUNT(GROUP_NAME) AS GYEJWA_CNT
+  , 0 AS GUBUN_SORT_SNO 
+   , '0' AS GROUP_SORT_SNO
+  , SUM(SEIP_SUM) AS SEIP_SUM
+  , SUM(SECHUL_SUM) AS SECHUL_SUM
+  , SUM(SEIP_SECHUL_JAN) AS SEIP_SECHUL_JAN
+FROM RESULT_DATA
+),  
+GUBUN_DATA AS (SELECT 
+  1 AS GUBUN_CD
+  , A.GUBUN_NAME AS GUBUN_NAME
+  , A.GUBUN_NAME AS GROUP_NAME
+  , A.GUBUN_NAME AS GYEJWA_NM 
+  , COUNT(A.GROUP_NAME) AS GYEJWA_CNT
+  , NVL((SELECT B.RN FROM GUBUN_ORDATA B WHERE B.GUBUN_NAME = A.GUBUN_NAME) , 99) AS GUBUN_SORT_SNO 
+   , '0' AS GROUP_SORT_SNO
+  , SUM(A.SEIP_SUM) AS SEIP_SUM
+  , SUM(A.SECHUL_SUM) AS SECHUL_SUM
+  , SUM(A.SEIP_SECHUL_JAN) AS SEIP_SECHUL_JAN
+FROM RESULT_DATA A
+GROUP BY A.GUBUN_NAME
+) ,
+GRP_DATA AS ( 
+  SELECT 
+  2 AS GUBUN_CD
+  , A.GUBUN_NAME AS GUBUN_NAME
+  , A.GROUP_NAME AS GROUP_NAME
+  , A.GROUP_NAME AS GYEJWA_NM  
+  , COUNT(A.GYEJWA_NM) AS GYEJWA_CNT
+  , NVL((SELECT B.RN FROM GUBUN_ORDATA B WHERE B.GUBUN_NAME = A.GUBUN_NAME) , 99) AS GUBUN_SORT_SNO 
+  , A.GROUP_SORT_SNO
+  , SUM(A.SEIP_SUM) AS SEIP_SUM
+  , SUM(A.SECHUL_SUM) AS SECHUL_SUM
+  , SUM(A.SEIP_SECHUL_JAN) AS SEIP_SECHUL_JAN
+FROM RESULT_DATA A
+GROUP BY A.GUBUN_NAME, A.GROUP_NAME, A.GROUP_SORT_SNO
+) , 
+GYEJWA_DATA AS (SELECT 
+  3 AS GUBUN_CD
+  , A.GUBUN_NAME AS GUBUN_NAME
+  , A.GROUP_NAME AS GROUP_NAME
+  , A.GYEJWA_NM AS GYEJWA_NM  
+  , 1 AS GYEJWA_CNT
+  , NVL((SELECT B.RN FROM GUBUN_ORDATA B WHERE B.GUBUN_NAME = A.GUBUN_NAME) , 99) AS GUBUN_SORT_SNO  
+  , A.GROUP_SORT_SNO
+  , SUM(A.SEIP_SUM) AS SEIP_SUM
+  , SUM(A.SECHUL_SUM) AS SECHUL_SUM
+  , SUM(A.SEIP_SECHUL_JAN) AS SEIP_SECHUL_JAN
+FROM RESULT_DATA A
+GROUP BY A.GUBUN_NAME, A.GROUP_NAME, A.GYEJWA_NM, A.GROUP_SORT_SNO
+) 
+SELECT 
+  GUBUN_CD
+  , '합계' AS GUBUN_NAME
+  , '' AS GROUP_NAME
+  , '' AS GYEJWA_NM  
+  , GYEJWA_CNT
+  , GUBUN_SORT_SNO 
+  , GROUP_SORT_SNO
+  , NVL(SEIP_SUM, 0) AS SEIP_SUM
+  , NVL(SECHUL_SUM, 0) AS SECHUL_SUM
+  , NVL(SEIP_SECHUL_JAN, 0) AS SEIP_SECHUL_JAN
+FROM TOTAL_DATA 
+UNION ALL
+SELECT 
+  GUBUN_CD
+  , GUBUN_NAME
+  , GROUP_NAME
+  , GYEJWA_NM  
+  , GYEJWA_CNT
+  , GUBUN_SORT_SNO 
+  , GROUP_SORT_SNO
+  , SEIP_SUM
+  , SECHUL_SUM
+  , SEIP_SECHUL_JAN
+FROM GUBUN_DATA 
+) A 
+ORDER BY  A.GUBUN_SORT_SNO, A.GROUP_SORT_SNO, A.GUBUN_CD, A.GROUP_NAME, A.GYEJWA_NM
+
+
+-----------------------------------------
+
+WITH PARAM_DATA AS (
+    SELECT
+        '28' AS GEUMGO_CD
+      , '0' AS GUNGU_CD
+      , NVL('', 'all') AS HOIKYE_C
+      , '2024' AS HOIKYE_YEAR
+      , '20241021' AS KEORAEIL
+    FROM DUAL
+    )
+  , GUBUN_ORDATA AS (
+    SELECT
+        ROWNUM AS RN,
+        GUBUN_NAME,
+        GEUMGO_CD,
+        GUNGU_CD,
+        SORT_SNO
+        FROM 
+        (
+        SELECT
+  A.GUBUN_NAME,
+  A.GEUMGO_CD,
+  A.GUNGU_CD,
+  A.SORT_SNO
+ FROM (
+ SELECT 
+            A.HRNK_CMM_C_NM AS GUBUN_NAME,
+            A.UPMU_HMK_1_SLV AS GEUMGO_CD,
+            A.UPMU_HMK_2_SLV AS GUNGU_CD,
+            MIN(A.SORT_SNO) AS SORT_SNO
+        FROM SFI_CMM_C_DAT A,
+        PARAM_DATA B
+        WHERE A.CMM_C_NM = '금고운용현황회계구분'
+        AND A.USE_YN = 'Y'
+        AND A.UPMU_HMK_1_SLV = B.GEUMGO_CD
+        AND A.UPMU_HMK_2_SLV = B.GUNGU_CD
+        GROUP BY A.HRNK_CMM_C_NM,
+            A.UPMU_HMK_1_SLV,
+            A.UPMU_HMK_2_SLV
+ ) A
+ ORDER BY A.SORT_SNO
+        ) A
+  )  
+  , GYEJWA AS (
+    SELECT
+      A.FIL_100_CTNT2 AS ACNO
+      , A.SIGUMGO_AC_B AS ACB
+      , A.SIGUMGO_AGE_AC_G AS AGE
+      , A.SIGUMGO_AC_G AS ACG
+      , A.SIGUMGO_AC_NM AS GYEJWA_NM
+    FROM ACL_SIGUMGO_MAS A,
+    PARAM_DATA B
+    WHERE 1=1
+    AND A.MNG_NO = 1
+    AND A.SIGUMGO_AGE_AC_G IN (0, 1)
+    AND A.SIGUMGO_ORG_C = B.GEUMGO_CD
+    AND A.FIL_100_CTNT2 IN (
+         SELECT 
+          CASE WHEN SUBSTR(CMM_DTL_C_NM, 16, 2) = 'YY' THEN SUBSTR(CMM_DTL_C_NM, 1, 15) || SUBSTR( B.HOIKYE_YEAR, 3, 2) 
+          ELSE CMM_DTL_C_NM 
+          END  AS GONGGEUM_GYEJWA
+        FROM SFI_CMM_C_DAT
+        WHERE CMM_C_NM = 'RPT세입세출일계표계좌'
+        AND USE_YN = 'Y'
+        AND HRNK_CMM_DTL_C = B.GEUMGO_CD
+        AND (
+          'all' = B.GUNGU_CD
+          OR
+          UPMU_HMK_1_SLV = B.GUNGU_CD
+        )
+        -- 회계 전체조건 추가
+        AND (
+          'all' = B.HOIKYE_C
+          OR
+          UPMU_HMK_2_SLV = B.HOIKYE_C
+        )
+       )
+  )
+  , DANGSEIPJOJEONG AS (
+ SELECT
+        A.KEORAEIL AS TRXDT
+        , A.KEORAEIL AS GISDT
+        , (
+  SELECT 
+      (CASE WHEN SUBSTR(NVL(B.UPMU_HMK_3_SLV, '00000000000000000'), 16, 2) = '99' THEN NVL(B.UPMU_HMK_3_SLV, '00000000000000000')
+   ELSE SUBSTR(NVL(B.UPMU_HMK_3_SLV, '00000000000000000'), 1, 15) || SUBSTR(NVL(C.HOIKYE_YEAR , '0000'), 3, 2) 
+   END)
+   AS ACNO
+  FROM SFI_CMM_C_DAT B
+  WHERE B.CMM_C_NM = 'RPT세입조정계좌매핑'
+  AND B.USE_YN = 'Y'
+  AND B.HRNK_CMM_DTL_C = A.GEUMGO_CODE
+  AND B.UPMU_HMK_1_SLV = A.JIBGYE_CODE
+  AND B.UPMU_HMK_2_SLV = A.GUNGU_CODE
+  AND ROWNUM = 1
+ ) AS ACNO
+        , 'SJ' AS G
+        , CASE WHEN A.IPJI_GUBUN = 1 THEN '249999' ELSE '649999' END AS GG
+        , DECODE(A.IPJI_GUBUN, 2, -1, 1) * (A.GYOYUKSE_AMT + A.NONGTEUKSE_AMT + A.JIBANGSE_AMT + A.SEWOI_AMT) AS AMT
+      FROM RPT_DANGSEIPJOJEONG A,
+    PARAM_DATA C
+      WHERE A.SUNAPIL BETWEEN  C.HOIKYE_YEAR || '0101' AND C.KEORAEIL
+ AND A.GEUMGO_CODE = C.GEUMGO_CD
+        AND A.JOJEONG_GUBUN = 2
+  )
+  , SLV AS (
+    -- YY계좌 공금거래
+    SELECT
+        A.TRXDT
+        , A.GISDT
+        , A.FIL_100_CTNT5 AS ACNO
+        , (SELECT GYEJWA_NM FROM GYEJWA WHERE ACNO = A.FIL_100_CTNT5) AS GYEJWA_NM
+        , (SELECT ACB FROM GYEJWA WHERE ACNO = A.FIL_100_CTNT5) AS ACB
+        , (SELECT AGE FROM GYEJWA WHERE ACNO = A.FIL_100_CTNT5) AS AGE
+        , 'JG' AS G
+        , LPAD(A.SIGUMGO_TRX_G, 2, '0') || LPAD(A.SIGUMGO_IP_TRX_G, 2, '0') || LPAD(A.SIGUMGO_JI_TRX_G, 2, '0') AS GG
+        , SUM( DECODE(A.CRT_CAN_G, 1, -1, 2, -1, 33, -1, 1) * DECODE(A.IPJI_G, 2, -1, 1) * A.TRAMT ) AS AMT
+      FROM ACL_SIGUMGO_SLV A,
+      PARAM_DATA B
+      WHERE A.FIL_100_CTNT5 IN (SELECT ACNO FROM GYEJWA)
+      AND A.GISDT >=  B.HOIKYE_YEAR || '0101'
+      AND A.SIGUMGO_HOIKYE_YR <> 9999
+      GROUP BY A.TRXDT, A.GISDT, A.FIL_100_CTNT5, LPAD(A.SIGUMGO_TRX_G, 2, '0') || LPAD(A.SIGUMGO_IP_TRX_G, 2, '0') || LPAD(A.SIGUMGO_JI_TRX_G, 2, '0')
+
+      UNION ALL
+
+      -- 99계좌 공금거래 / 기준일, 기산일 당년도분
+
+    SELECT
+        A.TRXDT
+        , A.GISDT
+        , A.FIL_100_CTNT5 AS ACNO
+        , (SELECT GYEJWA_NM FROM GYEJWA WHERE ACNO = A.FIL_100_CTNT5) AS GYEJWA_NM
+        , (SELECT ACB FROM GYEJWA WHERE ACNO = A.FIL_100_CTNT5) AS ACB
+        , (SELECT AGE FROM GYEJWA WHERE ACNO = A.FIL_100_CTNT5) AS AGE
+        , 'JG' AS G
+        , LPAD(A.SIGUMGO_TRX_G, 2, '0') || LPAD(A.SIGUMGO_IP_TRX_G, 2, '0') || LPAD(A.SIGUMGO_JI_TRX_G, 2, '0') AS GG
+        , SUM( DECODE(A.CRT_CAN_G, 1, -1, 2, -1, 33, -1, 1) * DECODE(A.IPJI_G, 2, -1, 1) * A.TRAMT ) AS AMT
+      FROM ACL_SIGUMGO_SLV A,
+      PARAM_DATA B
+      WHERE A.FIL_100_CTNT5 IN (SELECT ACNO FROM GYEJWA)
+      AND A.GJDT >=  B.HOIKYE_YEAR || '0101'
+      AND A.GJDT <= (CASE WHEN B.KEORAEIL > B.HOIKYE_YEAR || '1231' THEN B.HOIKYE_YEAR || '1231' ELSE B.KEORAEIL END)
+      AND A.GISDT >= B.HOIKYE_YEAR || '0101'
+      AND A.SIGUMGO_HOIKYE_YR = 9999
+      GROUP BY A.TRXDT, A.GISDT, A.FIL_100_CTNT5, LPAD(A.SIGUMGO_TRX_G, 2, '0') || LPAD(A.SIGUMGO_IP_TRX_G, 2, '0') || LPAD(A.SIGUMGO_JI_TRX_G, 2, '0')
+
+      UNION ALL
+
+      -- 99계좌 공금거래 / 기준일 전년도, 기산일 당년도분 - 일별로 세입처리 (110199)
+      SELECT
+        A.TRXDT
+        , A.GISDT
+        , A.FIL_100_CTNT5 AS ACNO
+        , (SELECT GYEJWA_NM FROM GYEJWA WHERE ACNO = A.FIL_100_CTNT5) AS GYEJWA_NM
+        , (SELECT ACB FROM GYEJWA WHERE ACNO = A.FIL_100_CTNT5) AS ACB
+        , (SELECT AGE FROM GYEJWA WHERE ACNO = A.FIL_100_CTNT5) AS AGE
+        , 'JG' AS G
+        , '110199' AS GG
+        , SUM( DECODE(A.CRT_CAN_G, 1, -1, 2, -1, 33, -1, 1) * DECODE(A.IPJI_G, 2, -1, 1) * A.TRAMT ) AS AMT
+      FROM ACL_SIGUMGO_SLV A,
+      PARAM_DATA B
+      WHERE A.FIL_100_CTNT5 IN (SELECT ACNO FROM GYEJWA)
+      AND A.GJDT < B.HOIKYE_YEAR || '0101'
+      AND A.GISDT >= B.HOIKYE_YEAR || '0101'
+      AND A.SIGUMGO_HOIKYE_YR = 9999
+      GROUP BY A.TRXDT, A.GISDT, A.FIL_100_CTNT5
+
+      UNION ALL
+
+      -- 99계좌 공금거래 / 기준일 당년도, 기산일 익년도분 - 일별로 가이월지급처리 (629904)
+      SELECT
+        A.TRXDT
+        , A.GISDT
+        , A.FIL_100_CTNT5 AS ACNO
+        , (SELECT GYEJWA_NM FROM GYEJWA WHERE ACNO = A.FIL_100_CTNT5) AS GYEJWA_NM
+        , (SELECT ACB FROM GYEJWA WHERE ACNO = A.FIL_100_CTNT5) AS ACB
+        , (SELECT AGE FROM GYEJWA WHERE ACNO = A.FIL_100_CTNT5) AS AGE
+        , 'JG' AS G
+        , '629904' AS GG
+        , SUM( DECODE(A.CRT_CAN_G, 1, -1, 2, -1, 33, -1, 1) * DECODE(A.IPJI_G, 2, -1, 1) * A.TRAMT ) * -1 AS AMT
+      FROM ACL_SIGUMGO_SLV A,
+      PARAM_DATA B
+      WHERE A.FIL_100_CTNT5 IN (SELECT ACNO FROM GYEJWA)
+      AND A.GJDT >=  B.HOIKYE_YEAR || '0101'
+      AND A.GJDT <= (CASE WHEN B.KEORAEIL > B.HOIKYE_YEAR || '1231' THEN B.HOIKYE_YEAR || '1231' ELSE B.KEORAEIL END)
+      AND A.GISDT > B.HOIKYE_YEAR || '1231'
+      AND A.SIGUMGO_HOIKYE_YR = 9999
+      GROUP BY A.TRXDT, A.GISDT, A.FIL_100_CTNT5
+      
+      UNION ALL
+
+      -- 한도거래
+      SELECT
+        A.TRXDT
+        , A.GISDT
+        , A.SIGUMGO_ACNO AS ACNO
+        , (SELECT GYEJWA_NM FROM GYEJWA WHERE ACNO = A.SIGUMGO_ACNO) AS GYEJWA_NM
+        , (SELECT ACB FROM GYEJWA WHERE ACNO = A.SIGUMGO_ACNO) AS ACB
+        , (SELECT AGE FROM GYEJWA WHERE ACNO = A.SIGUMGO_ACNO) AS AGE
+        , 'HD' AS G
+        , TO_CHAR(A.SIGUMGO_TRX_G) AS GG
+        , SUM( DECODE(A.CRT_CAN_G, 1, -1, 2, -1, 33, -1, 1) * DECODE(A.IPJI_G, 2, -1, 1) * A.TRAMT ) AS AMT
+      FROM ACL_SGGHANDO_SLV A,
+      PARAM_DATA B
+      WHERE A.SIGUMGO_ACNO IN (SELECT ACNO FROM GYEJWA)
+      AND A.TRXDT >=  B.HOIKYE_YEAR || '0101'
+      GROUP BY A.TRXDT, A.GISDT, A.SIGUMGO_ACNO, A.SIGUMGO_TRX_G
+
+      UNION ALL
+
+      SELECT
+        A.TRXDT
+        , A.GISDT
+        , A.ACNO
+        , B.GYEJWA_NM
+        , B.ACB 
+        , B.AGE
+        , A.G
+        , A.GG
+        , A.AMT
+      FROM DANGSEIPJOJEONG A, GYEJWA B
+      WHERE A.ACNO = B.ACNO
+
+      UNION ALL
+      
+      -- 운용잔액 / 전년자 말일금액을 익년 첫영업일자로 가져옴 (629903) - 지급거래형식으로, 마이너스 곱해줌
+      SELECT
+        TRXDT AS TRXDT
+        , TRXDT AS GISDT
+        , GONGGEUM_GYEJWA AS ACNO
+        , (SELECT GYEJWA_NM FROM GYEJWA WHERE ACNO = GONGGEUM_GYEJWA) AS GYEJWA_NM
+        , (SELECT ACB FROM GYEJWA WHERE ACNO = GONGGEUM_GYEJWA) AS ACB
+        , (SELECT AGE FROM GYEJWA WHERE ACNO = GONGGEUM_GYEJWA) AS AGE
+        , 'JG' AS G
+        , '629903' AS GG
+        , JANAEK * -1 AS AMT
+      FROM (
+        SELECT
+          (SELECT BIZ_DT
+          FROM MAP_JOB_DATE
+          WHERE DW_BAS_DDT = B.HOIKYE_YEAR || '0101') AS TRXDT
+          , CASE
+            WHEN SUBSTR(A.GONGGEUM_GYEJWA, 16, 2) <> 99 THEN SUBSTR(A.GONGGEUM_GYEJWA, 1, 15) || SUBSTR(B.HOIKYE_YEAR, 3, 2)
+            ELSE A.GONGGEUM_GYEJWA
+          END AS GONGGEUM_GYEJWA
+          , SUM(A.JANAEK) AS JANAEK
+        FROM RPT_UNYONG_JAN A,
+        RPT_UNYONG_GYEJWA C,
+        PARAM_DATA B
+        WHERE 1=1
+          AND A.GEUMGO_CODE = B.GEUMGO_CD
+          AND A.KIJUNIL = (SELECT
+                  CASE
+                    WHEN DT_G = 0 THEN BIZ_DT
+                    ELSE BF1_BIZ_DT
+                  END AS BIZ_DT
+                  FROM MAP_JOB_DATE
+                  WHERE DW_BAS_DDT = B.HOIKYE_YEAR - 1 || '1231')
+          AND A.JANAEK > 0
+          AND A.GEUMGO_CODE = C.GEUMGO_CODE
+          AND A.GONGGEUM_GYEJWA = C.GONGGEUM_GYEJWA
+          AND A.UNYONG_GYEJWA = C.UNYONG_GYEJWA
+          AND NVL(C.HJI_DT, '99999999') > (SELECT
+                  CASE
+                    WHEN DT_G = 0 THEN BIZ_DT
+                    ELSE BF1_BIZ_DT
+                  END AS BIZ_DT
+                  FROM MAP_JOB_DATE
+                  WHERE DW_BAS_DDT = B.HOIKYE_YEAR - 1 || '1231')
+        GROUP BY A.GONGGEUM_GYEJWA, B.HOIKYE_YEAR
+      )
+      WHERE GONGGEUM_GYEJWA IN (SELECT ACNO FROM GYEJWA)
+      UNION ALL
+
+      -- 운용잔액 / 당해 말일금액을 말일에 해지처리해줌 (120399)
+      SELECT
+        TRXDT AS TRXDT
+        , TRXDT AS GISDT
+        , GONGGEUM_GYEJWA AS ACNO
+        , (SELECT GYEJWA_NM FROM GYEJWA WHERE ACNO = GONGGEUM_GYEJWA) AS GYEJWA_NM
+        , (SELECT ACB FROM GYEJWA WHERE ACNO = GONGGEUM_GYEJWA) AS ACB
+        , (SELECT AGE FROM GYEJWA WHERE ACNO = GONGGEUM_GYEJWA) AS AGE
+        , 'JG' AS G
+        , '120399' AS GG
+        , JANAEK AS AMT
+      FROM (
+        SELECT
+          (SELECT BIZ_DT
+          FROM MAP_JOB_DATE
+          WHERE DW_BAS_DDT = B.HOIKYE_YEAR + 1 || '0101') AS TRXDT
+          , CASE
+            WHEN SUBSTR(A.GONGGEUM_GYEJWA, 16, 2) <> 99 THEN SUBSTR(A.GONGGEUM_GYEJWA, 1, 15) || SUBSTR(B.HOIKYE_YEAR, 3, 2)
+            ELSE A.GONGGEUM_GYEJWA
+          END AS GONGGEUM_GYEJWA
+          , SUM(A.JANAEK) AS JANAEK
+        FROM RPT_UNYONG_JAN A,
+        PARAM_DATA B
+        WHERE 1=1
+          AND A.KIJUNIL = (SELECT
+                  CASE
+                    WHEN DT_G = 0 THEN BIZ_DT
+                    ELSE BF1_BIZ_DT
+                  END AS BIZ_DT
+                  FROM MAP_JOB_DATE
+                  WHERE DW_BAS_DDT = B.HOIKYE_YEAR || '1231')
+          AND JANAEK > 0
+        GROUP BY A.GONGGEUM_GYEJWA, B.HOIKYE_YEAR
+      )
+      WHERE GONGGEUM_GYEJWA IN (SELECT ACNO FROM GYEJWA)
+      UNION ALL
+
+      -- 공금잔액 / 전년자 말일금액을 익년 첫영업일자로 가져옴 (99회계 대상, 110199)
+
+      SELECT
+        TRXDT AS TRXDT
+        , TRXDT AS GISDT
+        , GONGGEUM_GYEJWA AS ACNO
+              , (SELECT GYEJWA_NM FROM GYEJWA WHERE ACNO = GONGGEUM_GYEJWA) AS GYEJWA_NM
+              , (SELECT ACB FROM GYEJWA WHERE ACNO = GONGGEUM_GYEJWA) AS ACB
+              , (SELECT AGE FROM GYEJWA WHERE ACNO = GONGGEUM_GYEJWA) AS AGE
+        , 'JG' AS G
+        , '110199' AS GG
+        , JANAEK AS AMT
+      FROM (
+        SELECT /*+ HINT1 */
+          (SELECT BIZ_DT
+          FROM MAP_JOB_DATE
+          WHERE DW_BAS_DDT = B.HOIKYE_YEAR || '0101') AS TRXDT
+          ,A.GONGGEUM_GYEJWA
+          , A.JANAEK
+        FROM RPT_GONGGEUM_JAN A,
+        PARAM_DATA B
+        WHERE 1=1
+        AND A.KEORAEIL = B.HOIKYE_YEAR - 1 || '1231'
+        AND A.HOIGYE_YEAR = 9999
+        AND A.GONGGEUM_GYEJWA IN (SELECT ACNO FROM GYEJWA)
+      )
+
+      UNION ALL
+
+      -- 공금잔액 / 당해 말일금액을 말일에 가이월지급처리해줌 (99회계 대상, 629904)
+      SELECT
+        TRXDT AS TRXDT
+        , TRXDT AS GISDT
+        , GONGGEUM_GYEJWA AS ACNO
+              , (SELECT GYEJWA_NM FROM GYEJWA WHERE ACNO = GONGGEUM_GYEJWA) AS GYEJWA_NM
+              , (SELECT ACB FROM GYEJWA WHERE ACNO = GONGGEUM_GYEJWA) AS ACB
+              , (SELECT AGE FROM GYEJWA WHERE ACNO = GONGGEUM_GYEJWA) AS AGE
+        , 'JG' AS G
+        , '629904' AS GG
+        , JANAEK * -1 AS AMT
+      FROM (
+        SELECT /*+ HINT2 */
+          (SELECT BIZ_DT
+          FROM MAP_JOB_DATE
+          WHERE DW_BAS_DDT = B.HOIKYE_YEAR + 1 || '0101') AS TRXDT
+          ,A.GONGGEUM_GYEJWA
+          , A.JANAEK
+        FROM RPT_GONGGEUM_JAN A,
+        PARAM_DATA B
+        WHERE 1=1
+        AND A.KEORAEIL = B.HOIKYE_YEAR || '1231'
+        AND A.HOIGYE_YEAR = 9999
+        AND A.GONGGEUM_GYEJWA IN (SELECT ACNO FROM GYEJWA)
+      )
+
+  )
+SELECT
+  ACNO
+  , GYEJWA_NM  
+  , GUBUN_CMM_DTL_C
+  , GUBUN_NAME
+  , GROUP_CMM_DTL_C   
+  , GROUP_NAME
+  , GROUP_SORT_SNO
+  , SUM(세입_계) AS SEIP_SUM
+  , SUM(세출_계) AS SECHUL_SUM
+  , SUM(세입_계 - 세출_계) AS SEIP_SECHUL_JAN
+FROM (
+
+  SELECT
+    ACNO
+    , GYEJWA_NM  
+    , GUBUN_CMM_DTL_C
+    , GUBUN_NAME
+    , GROUP_CMM_DTL_C   
+    , GROUP_NAME
+    , GROUP_SORT_SNO
+    , 세입_일계 AS 세입_세입_일계
+    , 과오납_일계 * -1 AS 세입_과오납_일계
+    , (세입_일계 + 과오납_일계) AS 세입_계_일계
+    , 사업소지출_일계 * -1 AS 세출_배정_지출_일계
+    , 사업소반납_일계 AS 세출_배정_반납_일계
+    , (사업소지출_일계 + 사업소반납_일계) * -1 AS 세출_배정_계_일계
+    , 일상경비지출_일계 * -1 AS 세출_일상경비_지출_일계
+    , 일상경비반납_일계 AS 세출_일상경비_반납_일계
+    , (일상경비지출_일계 + 일상경비반납_일계) * -1 AS 세출_일상경비_계_일계
+    , (일상경비지출_일계)*-1 AS 세출_지출_계_일계
+    , (일상경비반납_일계) AS 세출_반납_계_일계
+    , (일상경비지출_일계 + 일상경비반납_일계 + 사업소지출_일계 + 사업소반납_일계)*-1 AS 세출_계_일계
+    , 전부금_일계 AS 세출_전부금_일계
+    , 전출_일계 * -1 AS 전용_전출_일계
+    , 전입_일계 AS 전용_전입_일계
+    , (전출_일계 + 전입_일계) * -1 AS 전용_전용계_일계
+    , 일시차입금_일계 AS 전용_일시차입금_일계
+    , 이월지급_일계 * -1 AS 전용_이월지급_일계
+    , (전출_일계 + 전입_일계 + 일시차입금_일계 + 이월지급_일계) * -1  AS 전용_계_일계
+    , 정기예금신규_일계 * -1 AS 예금_정기예금신규_일계
+    , 정기예금해지_일계 AS 예금_정기예금해지_일계
+    , (정기예금신규_일계 + 정기예금해지_일계) * -1 AS 예금_정기예금계_일계
+    , MMDA신규_일계 * -1 AS 예금_MMDA신규_일계
+    , MMDA해지_일계 AS 예금_MMDA해지_일계
+    , (MMDA신규_일계 + MMDA해지_일계) * -1 AS 예금_MMDA계_일계
+    , (정기예금신규_일계 + 정기예금해지_일계 + MMDA신규_일계 + MMDA해지_일계) * -1 AS 예금_계_일계
+    , 세입 AS 세입_세입
+    , 과오납 * -1 AS 세입_과오납
+    , (세입 + 과오납) AS 세입_계
+    , 사업소지출 * -1 AS 세출_배정_지출
+    , 사업소반납 AS 세출_배정_반납
+    , (사업소지출 + 사업소반납) * -1 AS 세출_배정_계
+    , 일상경비지출 * -1 AS 세출_일상경비_지출
+    , 일상경비반납 AS 세출_일상경비_반납
+    , (일상경비지출 + 일상경비반납) * -1 AS 세출_일상경비_계
+    , (일상경비지출)*-1 AS 세출_지출_계
+    , (일상경비반납) AS 세출_반납_계
+    , (일상경비지출 + 일상경비반납 + 사업소지출 + 사업소반납)*-1 AS 세출_계
+    , 전부금 AS 세출_전부금
+    , 전출 * -1 AS 전용_전출
+    , 전입 AS 전용_전입
+    , (전출 + 전입) * -1 AS 전용_전용계
+    , 일시차입금 AS 전용_일시차입금
+    , 이월지급 * -1 AS 전용_이월지급
+    , (전출 + 전입 + 일시차입금 + 이월지급) * -1  AS 전용_계
+    , 정기예금신규 * -1 AS 예금_정기예금신규
+    , 정기예금해지 AS 예금_정기예금해지
+    , (정기예금신규 + 정기예금해지) * -1 AS 예금_정기예금계
+    , MMDA신규 * -1 AS 예금_MMDA신규
+    , MMDA해지 AS 예금_MMDA해지
+    , (MMDA신규 + MMDA해지) * -1 AS 예금_MMDA계
+    , (정기예금신규 + 정기예금해지 + MMDA신규 + MMDA해지) * -1 AS 예금_계
+  FROM (
+    SELECT
+      A.ACNO
+      , A.GYEJWA_NM  
+      , G.CMM_DTL_C AS GUBUN_CMM_DTL_C
+      , G.HRNK_CMM_C_NM AS GUBUN_NAME
+      , GG.CMM_DTL_C AS GROUP_CMM_DTL_C   
+      , G.CMM_DTL_C_NM AS GROUP_NAME
+      , NVL(G.SORT_SNO, 9999) AS GROUP_SORT_SNO
+       -- 전년도 이월분 처리(110199) / 운용잔액(629903)은 정기예금에서 차감되므로 반대 부호로 더해줌
+      , SUM(CASE WHEN A.GISDT = B.KEORAEIL AND A.GG IN ('100000', '110100', '110200', '111100', '111200', '111300', '120400', '130000', '150000', '160000', '180000', '190800', '190900', '200000', '300000', '630000', '650000', '660000', '700000', '110199') THEN A.AMT ELSE 0 END) + SUM(CASE WHEN A.GISDT = B.KEORAEIL AND A.GG IN ('249999', '649999','629903') THEN -A.AMT ELSE 0 END) AS 세입_일계
+      , SUM(CASE WHEN A.GISDT = B.KEORAEIL AND A.GG IN ('240000', '640000', '249999', '649999') THEN A.AMT ELSE 0 END) AS 과오납_일계
+      , SUM(CASE WHEN A.GISDT = B.KEORAEIL AND A.GG IN ('670091', '670093', '610001') THEN A.AMT ELSE 0 END) AS 사업소지출_일계
+      , SUM(CASE WHEN A.GISDT = B.KEORAEIL AND A.GG IN ('179100', '179300', '140600') THEN A.AMT ELSE 0 END) AS 사업소반납_일계
+      , SUM(CASE WHEN A.GISDT = B.KEORAEIL AND A.GG IN ('670090', '670092', '670000', '610002', '680000', '690000', '800000', '940000') THEN A.AMT ELSE 0 END) AS 일상경비지출_일계
+      , SUM(CASE WHEN A.GISDT = B.KEORAEIL AND A.GG IN ('179000', '179200', '170000', '140700') THEN A.AMT ELSE 0 END) AS 일상경비반납_일계
+      , SUM(CASE WHEN A.GISDT = B.KEORAEIL AND A.GG IN ('') THEN A.AMT ELSE 0 END) AS 전부금_일계
+      , SUM(CASE WHEN A.GISDT = B.KEORAEIL AND A.GG IN ('620005') THEN A.AMT ELSE 0 END) AS 전출_일계
+      , SUM(CASE WHEN A.GISDT = B.KEORAEIL AND A.GG IN ('120500') THEN A.AMT ELSE 0 END) AS 전입_일계
+      , SUM(CASE WHEN A.GISDT = B.KEORAEIL AND A.GG IN ('') THEN A.AMT ELSE 0 END) AS 일시차입금_일계
+      , SUM(
+            CASE WHEN A.GISDT = B.KEORAEIL AND A.GG IN ('600000', '620004', '629904') THEN A.AMT
+            WHEN A.GISDT = B.KEORAEIL AND A.GG IN ('120399') THEN A.AMT * -1
+            ELSE 0 END
+        ) AS 이월지급_일계
+      , SUM(CASE WHEN A.GISDT = B.KEORAEIL AND A.GG IN ('620003', '629903') THEN A.AMT ELSE 0 END) AS 정기예금신규_일계
+      , SUM(CASE WHEN A.GISDT = B.KEORAEIL AND A.GG IN ('120300', '120399') THEN A.AMT ELSE 0 END) AS 정기예금해지_일계
+      , SUM(CASE WHEN A.GISDT = B.KEORAEIL AND A.GG IN ('620007', '620006') THEN A.AMT ELSE 0 END) AS MMDA신규_일계 -- 620006 별단예금 항목 분리 필요
+      , SUM(CASE WHEN A.GISDT = B.KEORAEIL AND A.GG IN ('121500','121400') THEN A.AMT ELSE 0 END) AS MMDA해지_일계 -- 121400 별단예금 항목 분리 필요
+      -- 전년도 이월분 처리(110199) / 운용잔액(629903)은 정기예금에서 차감되므로 반대 부호로 더해줌      
+      , SUM(CASE WHEN A.GG IN ('100000', '110100', '110200', '111100', '111200', '111300', '120400', '130000', '150000', '160000', '180000', '190800', '190900', '200000', '300000', '630000', '650000', '660000', '700000', '110199') THEN A.AMT ELSE 0 END) + SUM(CASE WHEN A.GG IN ('249999', '649999','629903') THEN -A.AMT ELSE 0 END) AS 세입
+      , SUM(CASE WHEN A.GG IN ('240000', '640000', '249999', '649999') THEN A.AMT ELSE 0 END) AS 과오납
+      , SUM(CASE WHEN A.GG IN ('670091', '670093', '610001') THEN A.AMT ELSE 0 END) AS 사업소지출
+      , SUM(CASE WHEN A.GG IN ('179100', '179300', '140600') THEN A.AMT ELSE 0 END) AS 사업소반납
+      , SUM(CASE WHEN A.GG IN ('670090', '670092', '670000', '610002', '680000', '690000', '800000', '940000') THEN A.AMT ELSE 0 END) AS 일상경비지출
+      , SUM(CASE WHEN A.GG IN ('179000', '179200', '170000', '140700') THEN A.AMT ELSE 0 END) AS 일상경비반납
+      , SUM(CASE WHEN A.GG IN ('') THEN A.AMT ELSE 0 END) AS 전부금
+      , SUM(CASE WHEN A.GG IN ('620005') THEN A.AMT ELSE 0 END) AS 전출
+      , SUM(CASE WHEN A.GG IN ('120500') THEN A.AMT ELSE 0 END) AS 전입
+      , SUM(CASE WHEN A.GG IN ('') THEN A.AMT ELSE 0 END) AS 일시차입금
+      , SUM(
+            CASE WHEN A.GG IN ('600000', '620004', '629904') THEN A.AMT
+            WHEN A.GG IN ('120399') THEN A.AMT * -1
+            ELSE 0 END
+        ) AS 이월지급
+      , SUM(CASE WHEN A.GG IN ('620003', '629903') THEN A.AMT ELSE 0 END) AS 정기예금신규
+      , SUM(CASE WHEN A.GG IN ('120300', '120399') THEN A.AMT ELSE 0 END) AS 정기예금해지
+      , SUM(CASE WHEN A.GG IN ('620007', '620006') THEN A.AMT ELSE 0 END) AS MMDA신규 -- 620006 별단예금 항목 분리 필요
+      , SUM(CASE WHEN A.GG IN ('121500','121400') THEN A.AMT ELSE 0 END) AS MMDA해지 -- 121400 별단예금 항목 분리 필요
+    FROM SLV A
+    JOIN PARAM_DATA B
+    ON A.GISDT <= B.KEORAEIL
+    -- 계좌매핑
+    INNER JOIN SFI_CMM_C_DAT GG ON GG.CMM_C_NM = '금고운용현황지역별연동계좌'
+    AND A.ACNO = GG.CMM_DTL_C_NM
+    -- 회계구분및그룹매핑
+    INNER JOIN SFI_CMM_C_DAT G ON G.CMM_C_NM = '금고운용현황회계구분'
+    AND G.USE_YN = 'Y'
+    AND G.UPMU_HMK_1_SLV = B.GEUMGO_CD 
+    AND G.UPMU_HMK_2_SLV = B.GUNGU_CD
+    AND G.CMM_DTL_C = GG.HRNK_CMM_DTL_C
+    GROUP BY A.ACNO
+            , A.GYEJWA_NM  
+            , G.CMM_DTL_C
+            , G.HRNK_CMM_C_NM
+            , GG.CMM_DTL_C   
+            , G.CMM_DTL_C_NM 
+            , G.SORT_SNO
+  )
+) 
+GROUP BY ACNO
+        , GYEJWA_NM  
+        , GUBUN_CMM_DTL_C
+        , GUBUN_NAME
+        , GROUP_CMM_DTL_C   
+        , GROUP_NAME
+        , GROUP_SORT_SNO
