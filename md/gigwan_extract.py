@@ -8,7 +8,8 @@
 4. 기관코드 전체자료.zip 압축풀기
 5. 기관코드 전체자료.txt 파일을 열어 org_code.txt 로 저장하기
 6. 하단의 파이썬 코드 파일을 실행하여 filtered_org_code_2025.txt 파일을 생성하기
-   실행: python gigwan_extract.py
+   실행: python gigwan_extract.py [입력파일] [출력파일]
+   예시: python gigwan_extract.py org_code.txt filtered_org_code_2025.txt
 7. 보고서 시스템 > 시스템관리 > 행정기관코드관리 메뉴에서 파일업로드를 클릭하여
    filtered_org_code_2025.txt 파일을 업로드하기
 8. 완료후 메세지 확인 (현재는 정상처리되었으나 메세지가 오류로 표시됨)
@@ -21,13 +22,12 @@
 
 import os
 import sys
-
-# 파일 경로 설정
-file_path = 'org_code.txt'
-output_txt_path = 'filtered_org_code_2025.txt'
+import argparse
+import time
+from typing import List, Set
 
 # 컬럼 매핑 정의
-column_mapping = {
+COLUMN_MAPPING = {
     '기관코드': 0, '전체기관명': 1, '최하위기관명': 2, '차수': 3, '서열': 4, '소속기관차수': 5,
     '차상위기관코드': 6, '최상위기관코드': 7, '대표기관코드': 8, '유형분류_대': 9, '유형분류_중': 10,
     '유형분류_소': 11, '우편번호': 12, '행정동코드': 13, '소재지코드': 14, '나머지주소': 15,
@@ -36,107 +36,180 @@ column_mapping = {
 }
 
 # 필터링할 최상위 기관 코드 (6280000: 인천광역시, 6530000: 전라남도, 6430000: 충청남도)
-filter_codes = ['6280000', '6530000', '6430000']
-filter_names = {'6280000': '인천광역시', '6530000': '전라남도', '6430000': '충청남도'}
+FILTER_CODES: Set[str] = {'6280000', '6530000', '6430000'}
+FILTER_NAMES = {'6280000': '인천광역시', '6530000': '전라남도', '6430000': '충청남도'}
 
-columns_to_extract = list(column_mapping.keys())
-results = []
+# 지원 인코딩 목록
+SUPPORTED_ENCODINGS: List[str] = ['cp949', 'euc-kr', 'utf-8']
 
 
-def process_file(encoding):
+def process_file_streaming(input_path: str, output_path: str, encoding: str) -> tuple[int, int]:
     """
-    파일을 읽어서 필터링된 데이터를 results 리스트에 추가
+    파일을 스트리밍 방식으로 읽어서 필터링된 데이터를 즉시 출력 파일에 작성
+    (메모리 효율적)
 
     Args:
+        input_path: 입력 파일 경로
+        output_path: 출력 파일 경로
         encoding: 파일 인코딩 (cp949, euc-kr, utf-8 등)
+
+    Returns:
+        tuple: (총 라인 수, 필터링된 라인 수)
     """
     line_count = 0
     filtered_count = 0
+    columns_to_extract = list(COLUMN_MAPPING.keys())
 
-    with open(file_path, 'r', encoding=encoding) as file:
-        for line in file:
+    with open(input_path, 'r', encoding=encoding) as infile, \
+         open(output_path, 'w', encoding='cp949') as outfile:
+
+        # 헤더 작성
+        outfile.write('\t'.join(columns_to_extract) + '\n')
+
+        # 데이터 처리
+        for line in infile:
             line_count += 1
             data = line.strip().split('\t')
 
             # 최상위기관코드(인덱스 7) 확인
-            if len(data) > 7 and data[7] in filter_codes:
+            if len(data) > 7 and data[7] in FILTER_CODES:
                 extracted_data = [
-                    data[column_mapping[col]] if len(data) > column_mapping[col] else 'NULL'
+                    data[COLUMN_MAPPING[col]] if len(data) > COLUMN_MAPPING[col] else 'NULL'
                     for col in columns_to_extract
                 ]
-                results.append('\t'.join(extracted_data))
+                outfile.write('\t'.join(extracted_data) + '\n')
                 filtered_count += 1
 
-    print(f"[인코딩: {encoding}] 총 {line_count:,}개 라인 중 {filtered_count:,}개 기관 데이터 추출")
-    return filtered_count
+                # 진행률 표시 (10,000 라인마다)
+                if filtered_count % 10000 == 0:
+                    print(f"[진행중] {filtered_count:,}개 기관 데이터 처리됨...")
+
+    return line_count, filtered_count
+
+
+def parse_arguments():
+    """커맨드라인 인자 파싱"""
+    parser = argparse.ArgumentParser(
+        description='기관코드 필터링 스크립트 - 인천광역시, 전라남도, 충청남도 기관 추출',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+사용 예시:
+  python gigwan_extract.py
+  python gigwan_extract.py org_code.txt filtered_output.txt
+  python gigwan_extract.py --input data.txt --output result.txt
+        """
+    )
+
+    parser.add_argument(
+        'input_file',
+        nargs='?',
+        default='org_code.txt',
+        help='입력 파일 경로 (기본값: org_code.txt)'
+    )
+
+    parser.add_argument(
+        'output_file',
+        nargs='?',
+        default='filtered_org_code_2025.txt',
+        help='출력 파일 경로 (기본값: filtered_org_code_2025.txt)'
+    )
+
+    parser.add_argument(
+        '--input', '-i',
+        dest='input_file_alt',
+        help='입력 파일 경로 (대체 옵션)'
+    )
+
+    parser.add_argument(
+        '--output', '-o',
+        dest='output_file_alt',
+        help='출력 파일 경로 (대체 옵션)'
+    )
+
+    args = parser.parse_args()
+
+    # 대체 옵션이 제공된 경우 우선 사용
+    input_path = args.input_file_alt if args.input_file_alt else args.input_file
+    output_path = args.output_file_alt if args.output_file_alt else args.output_file
+
+    return input_path, output_path
 
 
 def main():
     """메인 실행 함수"""
+    start_time = time.time()
 
-    # 1. 입력 파일 존재 확인
-    if not os.path.exists(file_path):
-        print(f"[오류] '{file_path}' 파일을 찾을 수 없습니다.")
+    # 1. 커맨드라인 인자 파싱
+    input_path, output_path = parse_arguments()
+
+    # 2. 입력 파일 존재 확인
+    if not os.path.exists(input_path):
+        print(f"[오류] '{input_path}' 파일을 찾을 수 없습니다.")
+        print(f"[도움말] python {sys.argv[0]} --help")
         sys.exit(1)
 
-    print(f"[입력 파일] {file_path}")
-    print(f"[출력 파일] {output_txt_path}")
-    print(f"[필터링 대상] {', '.join([f'{code}({filter_names[code]})' for code in filter_codes])}")
-    print("-" * 80)
+    print("=" * 80)
+    print(f"[입력 파일] {input_path}")
+    print(f"[출력 파일] {output_path}")
+    print(f"[필터링 대상] {', '.join([f'{code}({FILTER_NAMES[code]})' for code in FILTER_CODES])}")
+    print("=" * 80)
 
-    # 2. 파일 읽기 (인코딩 자동 감지)
-    encodings = ['cp949', 'euc-kr', 'utf-8']
+    # 3. 파일 처리 (인코딩 자동 감지 + 스트리밍 방식)
     success = False
+    line_count = 0
+    filtered_count = 0
 
-    for encoding in encodings:
+    for encoding in SUPPORTED_ENCODINGS:
         try:
-            print(f"[시도] '{encoding}' 인코딩으로 파일 읽기...")
-            filtered_count = process_file(encoding)
+            print(f"\n[시도] '{encoding}' 인코딩으로 파일 읽기...")
+            line_count, filtered_count = process_file_streaming(input_path, output_path, encoding)
             success = True
+            print(f"[성공] {encoding} 인코딩으로 파일 처리 완료")
             break
         except UnicodeDecodeError:
             print(f"[경고] '{encoding}' 인코딩 실패, 다음 인코딩 시도...")
+            # 실패한 출력 파일 삭제
+            if os.path.exists(output_path):
+                os.remove(output_path)
             continue
         except Exception as e:
-            print(f"[오류] {e}")
+            print(f"[오류] 처리 중 예외 발생: {e}")
+            if os.path.exists(output_path):
+                os.remove(output_path)
             sys.exit(1)
 
     if not success:
-        print(f"[오류] 지원하는 모든 인코딩({', '.join(encodings)})으로 파일을 읽을 수 없습니다.")
+        print(f"\n[오류] 지원하는 모든 인코딩({', '.join(SUPPORTED_ENCODINGS)})으로 파일을 읽을 수 없습니다.")
         sys.exit(1)
 
-    # 3. 결과 확인
-    if len(results) == 0:
-        print("[경고] 필터링 조건에 맞는 데이터가 없습니다.")
+    # 4. 결과 확인
+    if filtered_count == 0:
+        print("\n[경고] 필터링 조건에 맞는 데이터가 없습니다.")
+        if os.path.exists(output_path):
+            os.remove(output_path)
         return
 
-    # 4. 결과 파일 저장
-    try:
-        with open(output_txt_path, 'w', encoding='cp949') as txtfile:
-            # 헤더 작성
-            txtfile.write('\t'.join(columns_to_extract) + '\n')
+    # 5. 결과 통계 출력
+    elapsed_time = time.time() - start_time
+    file_size = os.path.getsize(output_path)
 
-            # 데이터 작성
-            for result in results:
-                txtfile.write(result + '\n')
+    # 파일 크기 포맷팅
+    if file_size < 1024:
+        size_str = f"{file_size} bytes"
+    elif file_size < 1024 * 1024:
+        size_str = f"{file_size / 1024:.2f} KB"
+    else:
+        size_str = f"{file_size / (1024 * 1024):.2f} MB"
 
-        print("-" * 80)
-        print(f"[완료] {len(results):,}개 기관 데이터를 '{output_txt_path}' 파일로 저장했습니다.")
-
-        # 파일 크기 출력
-        file_size = os.path.getsize(output_txt_path)
-        if file_size < 1024:
-            size_str = f"{file_size} bytes"
-        elif file_size < 1024 * 1024:
-            size_str = f"{file_size / 1024:.2f} KB"
-        else:
-            size_str = f"{file_size / (1024 * 1024):.2f} MB"
-
-        print(f"[파일 크기] {size_str}")
-
-    except IOError as e:
-        print(f"[오류] 파일 저장 중 오류 발생: {e}")
-        sys.exit(1)
+    print("\n" + "=" * 80)
+    print(f"[완료] 처리 결과:")
+    print(f"  - 총 라인 수: {line_count:,}개")
+    print(f"  - 추출된 기관: {filtered_count:,}개")
+    print(f"  - 필터링 비율: {(filtered_count / line_count * 100):.2f}%")
+    print(f"  - 출력 파일: {output_path}")
+    print(f"  - 파일 크기: {size_str}")
+    print(f"  - 처리 시간: {elapsed_time:.2f}초")
+    print("=" * 80)
 
 
 if __name__ == "__main__":
