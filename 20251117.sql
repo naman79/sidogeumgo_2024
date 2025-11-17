@@ -8,6 +8,209 @@ where unyong_gyejwa = '207022689591'
 02800025900000099
 02820035100000099
 
+-- 
+
+SELECT 
+        A.GONGGEUM_GYEJWA,
+        A.TRXDT,
+        A.GG,
+        B.TRX_NM,
+        A.TRAMT
+    FROM (
+    SELECT
+    TRXDT,
+    FIL_100_CTNT5 AS GONGGEUM_GYEJWA
+        , LPAD(SIGUMGO_TRX_G, 2, '0') || LPAD(SIGUMGO_IP_TRX_G, 2, '0') || LPAD(SIGUMGO_JI_TRX_G, 2, '0') AS GG
+        , SUM(DECODE(CRT_CAN_G, 1, -1, 2, -1, 33, -1, 1) * DECODE(IPJI_G , 2, -1, 1) * TRAMT) AS TRAMT 
+      FROM ACL_SIGUMGO_SLV
+      WHERE 1 = 1
+        AND FIL_100_CTNT5 in (
+            '02820035100000099'
+        )        
+        AND MNG_NO = 1
+      GROUP BY TRXDT 
+        , FIL_100_CTNT5 
+        , LPAD(SIGUMGO_TRX_G, 2, '0') || LPAD(SIGUMGO_IP_TRX_G, 2, '0') || LPAD(SIGUMGO_JI_TRX_G, 2, '0') 
+    ) A 
+    LEFT JOIN (
+        SELECT 
+            CMM_DTL_C AS TRX_G
+            , CMM_DTL_C_NM AS TRX_NM
+        FROM SFI_CMM_C_DAT
+        WHERE CMM_C_NM = 'RPT세입세출자금일계표집계용' 
+        ) B ON A.GG = B.TRX_G  
+     ORDER BY 
+         A.GONGGEUM_GYEJWA
+        ,A.TRXDT
+        ,A.GG
+
+-- 전체 조회
+    SELECT 
+        A.GONGGEUM_GYEJWA,
+        A.TRXDT,
+        A.GG,
+        B.TRX_NM,
+        A.TRAMT
+    FROM (
+    SELECT
+    TRXDT,
+    FIL_100_CTNT5 AS GONGGEUM_GYEJWA
+        , LPAD(SIGUMGO_TRX_G, 2, '0') || LPAD(SIGUMGO_IP_TRX_G, 2, '0') || LPAD(SIGUMGO_JI_TRX_G, 2, '0') AS GG
+        , SUM(DECODE(CRT_CAN_G, 1, -1, 2, -1, 33, -1, 1) * DECODE(IPJI_G , 2, -1, 1) * TRAMT) AS TRAMT 
+      FROM ACL_SIGUMGO_SLV
+      WHERE 1 = 1
+        AND FIL_100_CTNT5 in (
+            '02800024100000099',
+            '02800025900000099',
+            '02820035100000099'
+        )        
+        AND MNG_NO = 1
+        AND LPAD(SIGUMGO_TRX_G, 2, '0') || LPAD(SIGUMGO_IP_TRX_G, 2, '0') || LPAD(SIGUMGO_JI_TRX_G, 2, '0') IN (
+          SELECT 
+            CMM_DTL_C AS TRX_G
+          FROM SFI_CMM_C_DAT
+          WHERE CMM_C_NM = 'RPT세입세출자금일계표집계용' 
+          AND CMM_DTL_C_NM LIKE '%이월%'
+        )
+      GROUP BY TRXDT 
+        , FIL_100_CTNT5 
+        , LPAD(SIGUMGO_TRX_G, 2, '0') || LPAD(SIGUMGO_IP_TRX_G, 2, '0') || LPAD(SIGUMGO_JI_TRX_G, 2, '0') 
+    ) A 
+    LEFT JOIN (
+        SELECT 
+            CMM_DTL_C AS TRX_G
+            , CMM_DTL_C_NM AS TRX_NM
+        FROM SFI_CMM_C_DAT
+        WHERE CMM_C_NM = 'RPT세입세출자금일계표집계용' 
+        ) B ON A.GG = B.TRX_G
+     WHERE B.TRX_NM LIKE '%이월%'   
+     ORDER BY 
+         A.GONGGEUM_GYEJWA
+        ,A.TRXDT
+        ,A.GG
+
+
+-- 2024
+
+-- 일자 추가
+
+SELECT 
+        A.GONGGEUM_GYEJWA,
+        A.TRXDT,
+        A.GG,
+        B.TRX_NM,
+        A.TRAMT
+    FROM (
+    SELECT
+    TRXDT,
+    FIL_100_CTNT5 AS GONGGEUM_GYEJWA
+        , LPAD(SIGUMGO_TRX_G, 2, '0') || LPAD(SIGUMGO_IP_TRX_G, 2, '0') || LPAD(SIGUMGO_JI_TRX_G, 2, '0') AS GG
+        , SUM(DECODE(CRT_CAN_G, 1, -1, 2, -1, 33, -1, 1) * DECODE(IPJI_G , 2, -1, 1) * TRAMT) AS TRAMT 
+      FROM ACL_SIGUMGO_SLV
+      WHERE 1 = 1
+        AND FIL_100_CTNT5 in (
+            '02800024100000099',
+            '02800025900000099',
+            '02820035100000099'
+        )        
+        AND TRXDT BETWEEN '20240101' AND '20241231'
+        AND MNG_NO = 1
+      GROUP BY TRXDT 
+        , FIL_100_CTNT5 
+        , LPAD(SIGUMGO_TRX_G, 2, '0') || LPAD(SIGUMGO_IP_TRX_G, 2, '0') || LPAD(SIGUMGO_JI_TRX_G, 2, '0') 
+    ) A 
+    LEFT JOIN (
+        SELECT 
+            CMM_DTL_C AS TRX_G
+            , CMM_DTL_C_NM AS TRX_NM
+        FROM SFI_CMM_C_DAT
+        WHERE CMM_C_NM = 'RPT세입세출자금일계표집계용' 
+        ) B ON A.GG = B.TRX_G
+     WHERE B.TRX_NM LIKE '%이월%'   
+     ORDER BY 
+         A.GONGGEUM_GYEJWA
+        ,A.TRXDT
+        ,A.GG
+
+-- 거래구분
+
+    SELECT 
+        A.GONGGEUM_GYEJWA,
+        A.GG,
+        B.TRX_NM,
+        A.TRAMT
+    FROM (
+    SELECT
+    FIL_100_CTNT5 AS GONGGEUM_GYEJWA
+        , LPAD(SIGUMGO_TRX_G, 2, '0') || LPAD(SIGUMGO_IP_TRX_G, 2, '0') || LPAD(SIGUMGO_JI_TRX_G, 2, '0') AS GG
+        , SUM(DECODE(CRT_CAN_G, 1, -1, 2, -1, 33, -1, 1) * DECODE(IPJI_G , 2, -1, 1) * TRAMT) AS TRAMT 
+      FROM ACL_SIGUMGO_SLV
+      WHERE 1 = 1
+        AND FIL_100_CTNT5 in (
+            '02800024100000099',
+            '02800025900000099',
+            '02820035100000099'
+        )        
+        AND TRXDT BETWEEN '20240101' AND '20241231'
+        AND MNG_NO = 1
+      GROUP BY FIL_100_CTNT5 
+        , LPAD(SIGUMGO_TRX_G, 2, '0') || LPAD(SIGUMGO_IP_TRX_G, 2, '0') || LPAD(SIGUMGO_JI_TRX_G, 2, '0') 
+    ) A 
+    LEFT JOIN (
+        SELECT 
+            CMM_DTL_C AS TRX_G
+            , CMM_DTL_C_NM AS TRX_NM
+        FROM SFI_CMM_C_DAT
+        WHERE CMM_C_NM = 'RPT세입세출자금일계표집계용' 
+        ) B ON A.GG = B.TRX_G
+     WHERE B.TRX_NM LIKE '%이월%'   
+     ORDER BY 
+         A.GONGGEUM_GYEJWA
+        ,A.GG
+
+-- 2025
+-- 일자 추가
+
+SELECT 
+        A.GONGGEUM_GYEJWA,
+        A.TRXDT,
+        A.GG,
+        B.TRX_NM,
+        A.TRAMT
+    FROM (
+    SELECT
+    TRXDT,
+    FIL_100_CTNT5 AS GONGGEUM_GYEJWA
+        , LPAD(SIGUMGO_TRX_G, 2, '0') || LPAD(SIGUMGO_IP_TRX_G, 2, '0') || LPAD(SIGUMGO_JI_TRX_G, 2, '0') AS GG
+        , SUM(DECODE(CRT_CAN_G, 1, -1, 2, -1, 33, -1, 1) * DECODE(IPJI_G , 2, -1, 1) * TRAMT) AS TRAMT 
+      FROM ACL_SIGUMGO_SLV
+      WHERE 1 = 1
+        AND FIL_100_CTNT5 in (
+            '02800024100000099',
+            '02800025900000099',
+            '02820035100000099'
+        )        
+        AND TRXDT BETWEEN '20250101' AND '20251231'
+        AND MNG_NO = 1
+      GROUP BY TRXDT 
+        , FIL_100_CTNT5 
+        , LPAD(SIGUMGO_TRX_G, 2, '0') || LPAD(SIGUMGO_IP_TRX_G, 2, '0') || LPAD(SIGUMGO_JI_TRX_G, 2, '0') 
+    ) A 
+    LEFT JOIN (
+        SELECT 
+            CMM_DTL_C AS TRX_G
+            , CMM_DTL_C_NM AS TRX_NM
+        FROM SFI_CMM_C_DAT
+        WHERE CMM_C_NM = 'RPT세입세출자금일계표집계용' 
+        ) B ON A.GG = B.TRX_G
+     WHERE B.TRX_NM LIKE '%이월%'   
+     ORDER BY 
+         A.GONGGEUM_GYEJWA
+        ,A.TRXDT
+        ,A.GG
+
+-- 거래구분
+
     SELECT 
         A.GONGGEUM_GYEJWA,
         A.GG,
@@ -40,7 +243,7 @@ where unyong_gyejwa = '207022689591'
      WHERE B.TRX_NM LIKE '%이월%'   
      ORDER BY 
          A.GONGGEUM_GYEJWA
-        , A.GG
+        ,A.GG
 
 =========================== XDA ID:[tom.ich.fmt.xda.xSelectListICH040102By11]===============================
 SELECT
@@ -224,3 +427,7 @@ WHERE 1=1
   AND RN > '0'
   AND RN <= '2000'
 ============================================================================================        
+
+
+SELECT * FROM ACL_SIGUMGO_SLV
+WHERE = '02820035100000099'
