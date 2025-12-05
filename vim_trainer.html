@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vim 명령어 연습</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2em;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .question-card {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            min-height: 150px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .question {
+            font-size: 1.3em;
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .input-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        input {
+            flex: 1;
+            padding: 15px;
+            font-size: 1.1em;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            padding: 15px 30px;
+            font-size: 1.1em;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+
+        .submit-btn {
+            background: #667eea;
+            color: white;
+        }
+
+        .submit-btn:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+
+        .submit-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .skip-btn {
+            background: #6c757d;
+            color: white;
+        }
+
+        .skip-btn:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+        }
+
+        .feedback {
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 1.1em;
+            font-weight: bold;
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .feedback.correct {
+            background: #d4edda;
+            color: #155724;
+            border: 2px solid #c3e6cb;
+        }
+
+        .feedback.incorrect {
+            background: #f8d7da;
+            color: #721c24;
+            border: 2px solid #f5c6cb;
+        }
+
+        .reset-btn {
+            width: 100%;
+            background: #764ba2;
+            color: white;
+        }
+
+        .reset-btn:hover {
+            background: #633d8a;
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        const PROBLEMS = [
+            { question: "커서를 줄의 처음으로 이동하는 명령어?", answer: "0" },
+            { question: "커서를 줄의 끝으로 이동하는 명령어?", answer: "$" },
+            { question: "한 단어 앞으로 이동하는 명령어?", answer: "w" },
+            { question: "한 단어 뒤로 이동하는 명령어?", answer: "b" },
+            { question: "현재 줄 삭제?", answer: "dd" },
+            { question: "현재 문자 삭제?", answer: "x" },
+            { question: "줄 복사?", answer: "yy" },
+            { question: "붙여넣기?", answer: "p" },
+            { question: "실행 취소(되돌리기)?", answer: "u" },
+            { question: "다시 실행?", answer: "Ctrl+r" },
+            { question: "파일 저장?", answer: ":w" },
+            { question: "파일 저장하고 종료?", answer: ":wq" },
+            { question: "저장하지 않고 종료?", answer: ":q!" },
+            { question: "Insert 모드로 전환?", answer: "i" },
+            { question: "현재 줄 끝에서 Insert 모드?", answer: "A" },
+            { question: "새 줄 아래에 추가하고 Insert 모드?", answer: "o" },
+            { question: "검색?", answer: "/" },
+            { question: "다음 검색 결과로 이동?", answer: "n" },
+            { question: "이전 검색 결과로 이동?", answer: "N" },
+            { question: "파일 처음으로 이동?", answer: "gg" },
+            { question: "파일 끝으로 이동?", answer: "G" },
+        ];
+
+        function VimTrainer() {
+            const [currentProblem, setCurrentProblem] = useState(null);
+            const [userAnswer, setUserAnswer] = useState("");
+            const [feedback, setFeedback] = useState(null);
+            const [stats, setStats] = useState({
+                correct: 0,
+                incorrect: 0,
+                total: 0
+            });
+
+            useEffect(() => {
+                getRandomProblem();
+            }, []);
+
+            const getRandomProblem = () => {
+                const randomIndex = Math.floor(Math.random() * PROBLEMS.length);
+                setCurrentProblem(PROBLEMS[randomIndex]);
+                setUserAnswer("");
+                setFeedback(null);
+            };
+
+            const handleSubmit = (e) => {
+                e.preventDefault();
+                if (!userAnswer.trim()) return;
+
+                const isCorrect = userAnswer === currentProblem.answer;
+
+                setStats(prev => ({
+                    correct: prev.correct + (isCorrect ? 1 : 0),
+                    incorrect: prev.incorrect + (isCorrect ? 0 : 1),
+                    total: prev.total + 1
+                }));
+
+                setFeedback({
+                    type: isCorrect ? 'correct' : 'incorrect',
+                    message: isCorrect
+                        ? '정답입니다!'
+                        : `오답입니다. 정답은 '${currentProblem.answer}' 입니다.`
+                });
+
+                setTimeout(() => {
+                    getRandomProblem();
+                }, 2000);
+            };
+
+            const handleReset = () => {
+                setStats({ correct: 0, incorrect: 0, total: 0 });
+                getRandomProblem();
+            };
+
+            const accuracy = stats.total > 0
+                ? Math.round((stats.correct / stats.total) * 100)
+                : 0;
+
+            return (
+                <div className="container">
+                    <h1>Vim 명령어 연습</h1>
+
+                    <div className="stats">
+                        <div className="stat-item">
+                            <div className="stat-label">정답</div>
+                            <div className="stat-value">{stats.correct}</div>
+                        </div>
+                        <div className="stat-item">
+                            <div className="stat-label">오답</div>
+                            <div className="stat-value" style={{color: '#e74c3c'}}>{stats.incorrect}</div>
+                        </div>
+                        <div className="stat-item">
+                            <div className="stat-label">정확도</div>
+                            <div className="stat-value" style={{color: '#27ae60'}}>{accuracy}%</div>
+                        </div>
+                    </div>
+
+                    <div className="progress-bar">
+                        <div className="progress-fill" style={{width: `${accuracy}%`}}></div>
+                    </div>
+
+                    {feedback && (
+                        <div className={`feedback ${feedback.type}`}>
+                            {feedback.message}
+                        </div>
+                    )}
+
+                    {currentProblem && (
+                        <div className="question-card">
+                            <div className="question">{currentProblem.question}</div>
+
+                            <form onSubmit={handleSubmit}>
+                                <div className="input-container">
+                                    <input
+                                        type="text"
+                                        value={userAnswer}
+                                        onChange={(e) => setUserAnswer(e.target.value)}
+                                        placeholder="답을 입력하세요"
+                                        autoFocus
+                                        disabled={feedback !== null}
+                                    />
+                                    <button
+                                        type="submit"
+                                        className="submit-btn"
+                                        disabled={feedback !== null}
+                                    >
+                                        확인
+                                    </button>
+                                </div>
+                            </form>
+
+                            <button
+                                className="skip-btn"
+                                onClick={getRandomProblem}
+                                disabled={feedback !== null}
+                            >
+                                다음 문제
+                            </button>
+                        </div>
+                    )}
+
+                    <button className="reset-btn" onClick={handleReset}>
+                        통계 초기화
+                    </button>
+                </div>
+            );
+        }
+
+        ReactDOM.render(<VimTrainer />, document.getElementById('root'));
+    </script>
+</body>
+</html>
